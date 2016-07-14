@@ -8,7 +8,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 24
         versionCode 1
-        versionName "1.0"
+        versionName "0.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -29,6 +29,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-location:9.2.1'
     compile 'io.reactivex:rxandroid:1.2.1'
     compile 'io.reactivex:rxjava:1.1.7'
+    compile 'com.google.code.gson:gson:2.7'
     compile 'com.jakewharton.timber:timber:4.1.2'
 
     testCompile 'junit:junit:4.12'
