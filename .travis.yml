@@ -1,18 +1,18 @@
 language: android
 jdk:
-  - oraclejdk8
+  - oraclejdk8
 android:
-  components:
-    - tools
-    - platform-tools
-    - build-tools-24.0.0
-    - android-24
-    - sys-img-x86_64-android-24
-    - sys-img-x86_64-google_apis-23
-    - addon-google_apis-google-23
-    - extra-android-m2repository
-    - extra-google-google_play_services
-    - extra-google-m2repository
-    - extra-intel-Hardware_Accelerated_Execution_Manager
+  components:
+    - tools
+    - platform-tools
+    - build-tools-24.0.0
+    - android-24
+    - sys-img-x86_64-android-24
+    - sys-img-x86_64-google_apis-23
+    - addon-google_apis-google-23
+    - extra-android-m2repository
+    - extra-google-google_play_services
+    - extra-google-m2repository
+    - extra-intel-Hardware_Accelerated_Execution_Manager
 script:
-  - gradle build
+  - ./gradlew build
