@@ -3,13 +3,13 @@ jdk:
   - oraclejdk8
 android:
   components:
-    - platform-tools
-    - build-tools-24
-    - android-24
-    - sys-img-armeabi-v7a-android-24
-    - sys-img-x86-android-24
-    - extra-android-support
-    - extra-google-google_play_services
-    - extra-google-m2repository
-    - extra-android-m2repository
-    - addon-google_apis-google-24
+   - tools
+   - platform-tools
+   - build-tools-24.0.0
+   - android-24
+   - sys-img-x86_64-android-24
+   - addon-google_apis-google-23
+   - extra-android-m2repository
+   - extra-google-google_play_services
+   - extra-google-m2repository
+   - extra-intel-Hardware_Accelerated_Execution_Manager
