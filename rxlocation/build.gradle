@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
 
 android {
     compileSdkVersion 24
@@ -7,8 +8,7 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 24
-        versionCode 1
-        versionName "0.1"
+        versionName "0.2"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -25,6 +25,7 @@ dependencies {
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
+    compile 'com.android.support:appcompat-v7:24.0.0'
     compile 'com.google.android.gms:play-services-location:9.2.1'
     compile 'io.reactivex:rxjava:1.1.7'
     compile 'com.google.code.gson:gson:2.7'
@@ -36,4 +37,16 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    pkg {
+        repo = 'RxLocation'
+        name = 'rxlocation'
+        userOrg = 'bintray_user'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/julioromano/RxLocation.git'
+    }
 }

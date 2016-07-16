@@ -1,12 +1,15 @@
 package net.kjulio.rxlocation;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -41,10 +44,12 @@ import timber.log.Timber;
 class RxLocationImpl extends RxLocation {
 
     private static final int TIMEOUT_SECONDS = 5;
+    static final Object globalLock = new Object();
 
-    private final AtomicInteger activeRequestsNumber = new AtomicInteger();
+    private final Context context;
     private final Handler handler;
     private final LocationStorage locationStorage;
+    private final AtomicInteger activeRequestsNumber = new AtomicInteger();
     private final GoogleApiClient googleApiClient;
     private final LocationRequest defaultLocationRequest = LocationRequest.create()
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -52,15 +57,17 @@ class RxLocationImpl extends RxLocation {
     private Location lastKnownLocation;
 
     RxLocationImpl(Context context, Looper mainLooper, LocationStorage locationStorage) {
-        handler = new Handler(mainLooper);
+        this.context = context.getApplicationContext();
+        this.handler = new Handler(mainLooper);
+        this.locationStorage = locationStorage;
         GoogleApiClientConnectionListener googleApiClientConnectionListener =
                 new GoogleApiClientConnectionListener();
-        this.googleApiClient = new GoogleApiClient.Builder(context.getApplicationContext())
+        this.googleApiClient = new GoogleApiClient.Builder(this.context)
                 .addConnectionCallbacks(googleApiClientConnectionListener)
                 .addOnConnectionFailedListener(googleApiClientConnectionListener)
                 .addApi(LocationServices.API)
                 .build();
-        this.locationStorage = locationStorage;
+
         Location location = locationStorage.getLastLoc(); // restores state from db, if there's no state set a fake location.
         if (location != null) {
             lastKnownLocation = location;
@@ -71,13 +78,27 @@ class RxLocationImpl extends RxLocation {
 
     @Override
     public Observable<Location> locationObservable() {
-        return locationObservable(defaultLocationRequest);
+        return createLocationObservable(defaultLocationRequest);
     }
 
     @Override
-    public Observable<Location> locationObservable(final LocationRequest locationRequest) {
+    public Observable<Location> locationObservable(LocationRequest locationRequest) {
+        return createLocationObservable(locationRequest);
+    }
 
-        final Scheduler scheduler = Schedulers.io();
+    @Override
+    public Single<Location> locationSingle() {
+        return createLocationObservable(defaultLocationRequest).first().toSingle();
+    }
+
+    @Override
+    public Single<Location> locationSingle(LocationRequest locationRequest) {
+        return createLocationObservable(locationRequest).first().toSingle();
+    }
+
+    private Observable<Location> createLocationObservable(final LocationRequest locationRequest) {
+
+        final Scheduler scheduler = Schedulers.newThread();
         final RxLocationListener[] rxLocationListener = new RxLocationListener[1];
 
         return Observable.create(new Observable.OnSubscribe<Location>() {
@@ -88,17 +109,38 @@ class RxLocationImpl extends RxLocation {
                 if (connectionResult.isSuccess()) {
                     activeRequestsNumber.incrementAndGet();
                     rxLocationListener[0] = new RxLocationListener(subscriber, scheduler);
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
+                    if (checkPermissions(context)) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
                                 requestLocationUpdates(
                                         googleApiClient, locationRequest, rxLocationListener[0]);
-                            } catch (SecurityException e) {
-                                subscriber.onError(e);
+                            }
+                        });
+                    } else {
+                        // Spawn permission request activity
+                        PermissionActivity.requestPermissions(context);
+                        // wait on global globalLock
+                        synchronized (globalLock) {
+                            try {
+                                globalLock.wait();
+                            }catch (InterruptedException e) {
+                                Timber.e(e, "Interrupted during wait for request permissions result.");
                             }
                         }
-                    });
+                        // when globalLock released  recheck for error or go on
+                        if (checkPermissions(context)) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    requestLocationUpdates(
+                                            googleApiClient, locationRequest, rxLocationListener[0]);
+                                }
+                            });
+                        } else {
+                            subscriber.onError(new SecurityException("Location permission not granted."));
+                        }
+                    }
                 } else {
                     subscriber.onError(new IllegalStateException(String.format(Locale.getDefault(),
                             "Unable to connect to Play Services: %s", connectionResult.getErrorMessage())));
@@ -118,21 +160,12 @@ class RxLocationImpl extends RxLocation {
 
                         if(activeRequestsNumber.decrementAndGet()==0) {
                             googleApiClient.disconnect();
+                            Timber.d("disconnect");
                         }
                     }
                 });
             }
         }).subscribeOn(scheduler).timeout(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-    }
-
-    @Override
-    public Single<Location> locationSingle() {
-        return locationObservable().first().toSingle();
-    }
-
-    @Override
-    public Single<Location> locationSingle(LocationRequest locationRequest) {
-        return locationObservable(locationRequest).first().toSingle();
     }
 
     @Override
@@ -225,4 +258,13 @@ class RxLocationImpl extends RxLocation {
 
     }
 
+    static boolean checkPermissions(Context context) {
+        int coarseLocPerm = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_COARSE_LOCATION);
+        int fineLocPerm = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_FINE_LOCATION);
+
+        return (coarseLocPerm == PackageManager.PERMISSION_GRANTED &&
+                fineLocPerm == PackageManager.PERMISSION_GRANTED);
+    }
 }
