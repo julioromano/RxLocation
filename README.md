@@ -14,7 +14,7 @@ An Android Library to get location updates with a nice and clean [RxJava](https:
 ## Installation
 
 Add this to your project's gradle.conf:
-```
+```groovy
 allprojects {
     repositories {
         maven {
@@ -26,7 +26,7 @@ allprojects {
 
 Add this to your module's gradle.conf:
 
-```
+```groovy
 dependencies {
     compile 'net.kjulio.RxLocation:rxlocation:0.3-alpha'
 }
@@ -34,7 +34,7 @@ dependencies {
 
 ## Usage
 
-```
+```java
 public class MainActivity extends AppCompatActivity {
 
     TextView textView;
