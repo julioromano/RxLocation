@@ -3,7 +3,7 @@
 
 # RxLocation
 
-An Android Library to get location updates with a nice, clean, user friendly rxJava API. Also takes care of runtime permissions (on Android M+).
+An Android Library to get location updates with a nice and clean RxJava API. Also takes care of runtime permissions (on Android M+).
 
 ## Installation
 
