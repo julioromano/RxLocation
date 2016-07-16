@@ -11,7 +11,11 @@ import rx.Observable;
 import rx.Single;
 
 /**
- * RxLocation. An easy to use Android library to get location data in an rxJava way.
+ * RxLocation.
+ *
+ * An easy to use Android library to get location data in an RxJava way.
+ *
+ * https://github.com/julioromano/RxLocation
  */
 public abstract class RxLocation {
 
@@ -45,10 +49,12 @@ public abstract class RxLocation {
     public abstract Single<Location> locationSingle(LocationRequest locationRequest);
 
     /**
-     * Get current last known location from the location framework.
+     * Get the last known location. This data is persisted across Application restarts.
+     * Doesn't activate location services so if none of the locationObservable() or locationSingle()
+     * methods have ever been called first, 0.00/0.00 will be returned.
      *
-     * @return The current location. Return 0.00/0.00 if the app doesn't have
-     *          location permission or if location is not available.
+     * @return The last known location. Returns 0.00/0.00 if the app doesn't have
+     *          location permission or if location data is not available.
      */
     public abstract @NonNull Location lastLocation();
 }
