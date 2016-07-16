@@ -15,5 +15,13 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+# Avoid changing of any file names (useles since this is an open source library) but keep shrinking
+# the class files to reduce the size of the library package.
+
 -dontobfuscate
--keep class net.kjulio.rxlocation.RxLocation { *; }
+
+# Prevent removing the entry points of the library while performing shrinking.
+-keep public class net.kjulio.rxlocation.RxLocation {
+    public *;
+}

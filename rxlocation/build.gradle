@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
 android {
@@ -40,14 +41,26 @@ dependencies {
 
 }
 
+group = 'net.kjulio.RxLocation'
+version = '0.3-alpha'
+
 bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
     pkg {
         repo = 'RxLocation'
-        name = 'rxlocation'
-        userOrg = 'bintray_user'
+        name = 'RxLocation'
+
+        version {
+            name = '0.3-alpha'
+            desc = 'An Android Library to get location updates with a nice and clean rxJava API.'
+            released  = new Date()
+            vcsTag = 'v0.3-alpha'
+        }
+
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/julioromano/RxLocation.git'
+        websiteUrl = 'https://github.com/julioromano/RxLocation'
     }
+    configurations = ['archives']
 }
