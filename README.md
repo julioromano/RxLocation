@@ -7,7 +7,18 @@ An Android Library to get location updates with a nice and clean RxJava API. Als
 
 ## Installation
 
-Add this to your gradle.conf:
+Add this to your project's gradle.conf:
+```
+allprojects {
+    repositories {
+        maven {
+            url 'https://dl.bintray.com/julioromano/RxLocation'
+        }
+    }
+}
+```
+
+Add this to your module's gradle.conf:
 
 ```
 dependencies {
