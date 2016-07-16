@@ -3,7 +3,13 @@
 
 # RxLocation
 
-An Android Library to get location updates with a nice and clean RxJava API. Also takes care of runtime permissions (on Android M+).
+An Android Library to get location updates with a nice and clean [RxJava](https://github.com/ReactiveX/RxJava) API. Also takes care of runtime permissions (on Android M+).
+
+## Features
+ - Transparent management of GoogleApiClient: Connection to GoogleApiClient is automatically opened and closed when needed.
+ - Location permission request (Android M+): Shall the app not have been granted location permission, the permission request dialog will pop-up automatically.
+ - RxJava API: Get one time location updates using rx.Single or continuous location updates using rx.Observable.
+ - Convenient error handling: In case the user doesn't grant location permission an error condition will be issued via rxJava's onError() API.
 
 ## Installation
 
