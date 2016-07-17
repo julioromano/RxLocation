@@ -13,17 +13,6 @@ An Android Library to get location updates with a nice and clean [RxJava](https:
 
 ## Installation
 
-Add this to your project's gradle.conf:
-```groovy
-allprojects {
-    repositories {
-        maven {
-            url 'https://dl.bintray.com/julioromano/RxLocation'
-        }
-    }
-}
-```
-
 Add this to your module's gradle.conf:
 
 ```groovy
