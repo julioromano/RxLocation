@@ -9,7 +9,7 @@ android {
     defaultConfig {
         minSdkVersion 10
         targetSdkVersion 24
-        versionName "0.3"
+        versionName "$version"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -41,7 +41,7 @@ dependencies {
 }
 
 group = 'net.kjulio.RxLocation'
-version = '0.3-alpha'
+version = '0.4-beta'
 
 bintray {
     user = System.getenv('BINTRAY_USER')
@@ -51,10 +51,10 @@ bintray {
         name = 'RxLocation'
 
         version {
-            name = '0.3-alpha'
+            name = "$version"
             desc = 'An Android Library to get location updates with a nice and clean rxJava API.'
             released  = new Date()
-            vcsTag = 'v0.3-alpha'
+            vcsTag = "v + $version"
         }
 
         licenses = ['Apache-2.0']
