@@ -9,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 
-import timber.log.Timber;
 
 /**
  * Hidden (no visible UI) activity to handle the Android M permission request dialog.
@@ -30,13 +29,10 @@ public class PermissionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Timber.d("PermissionActivity onCreate().");
 
         if (RxLocationImpl.checkPermissions(this)) {
-            Timber.d("Location permissions already granted.");
             finish();
         } else {
-            Timber.d("Location permissions not granted: showing request dialog.");
             ActivityCompat.requestPermissions(this, LOCATION_PERMISSIONS, LOC_REQ_CODE);
         }
     }
@@ -48,9 +44,7 @@ public class PermissionActivity extends AppCompatActivity {
         if (requestCode == LOC_REQ_CODE && grantResults.length == 2 &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED &&
                 grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-            Timber.d("Location permissions granted.");
         } else {
-            Timber.d("Location permissions not granted.");
         }
         synchronized (RxLocationImpl.globalLock) {
             RxLocationImpl.globalLock.notifyAll();

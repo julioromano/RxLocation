@@ -29,7 +29,6 @@ import rx.Single;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.schedulers.Schedulers;
-import timber.log.Timber;
 
 
 /**
@@ -125,7 +124,6 @@ class RxLocationImpl extends RxLocation {
                             try {
                                 globalLock.wait();
                             }catch (InterruptedException e) {
-                                Timber.e(e, "Interrupted during wait for request permissions result.");
                             }
                         }
                         // when globalLock released  recheck for error or go on
@@ -160,7 +158,6 @@ class RxLocationImpl extends RxLocation {
 
                         if(activeRequestsNumber.decrementAndGet()==0) {
                             googleApiClient.disconnect();
-                            Timber.d("disconnect");
                         }
                     }
                 });
@@ -242,19 +239,13 @@ class RxLocationImpl extends RxLocation {
         private GoogleApiClientConnectionListener() {}
 
         @Override
-        public void onConnected(@Nullable Bundle bundle) {
-            Timber.d("onConnected: %s", bundle);
-        }
+        public void onConnected(@Nullable Bundle bundle) {}
 
         @Override
-        public void onConnectionSuspended(int i) {
-            Timber.d("onConnectionSuspended: %d", i);
-        }
+        public void onConnectionSuspended(int i) {}
 
         @Override
-        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-            Timber.e("onConnectionFailed: %s.", connectionResult);
-        }
+        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
 
     }
 

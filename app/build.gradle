@@ -5,7 +5,7 @@ android {
     buildToolsVersion "24.0.1"
     defaultConfig {
         applicationId "net.kjulio.rxlocationtest"
-        minSdkVersion 16
+        minSdkVersion 10
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
