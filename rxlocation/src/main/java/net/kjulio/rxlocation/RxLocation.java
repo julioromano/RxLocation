@@ -19,6 +19,12 @@ import rx.Single;
  */
 public abstract class RxLocation {
 
+    /**
+     * Returns a new instance of the RxLocation library.
+     *
+     * @param context the current application or activity context.
+     * @return a new instance of RxLocation
+     */
     public static RxLocation newInstance(Context context) {
         return new RxLocationImpl(
                 context,
