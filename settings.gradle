@@ -1,1 +1,1 @@
-include ':testApp', ':rxlocation'
+include ':rxlocationtest', ':rxlocation'
