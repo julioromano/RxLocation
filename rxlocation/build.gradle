@@ -10,6 +10,8 @@ android {
         minSdkVersion 10
         targetSdkVersion 24
         versionName "$version"
+        testApplicationId "net.kjulio.rxlocation.test"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -18,14 +20,43 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            testCoverageEnabled = true
+        }
+    }
+
+    // Instrumented tests have to be run on the debug variant as the release variant requires
+    // signing the test apk which is useless for library projects.
+    testBuildType "debug"
+
+    // Always show the result of every unit test, even if it passes.
+    testOptions.unitTests.all {
+        testLogging {
+            events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+        }
+    }
+
+    lintOptions {
+        abortOnError true
+        xmlReport true
+        htmlReport true
     }
 }
 
 dependencies {
+
     compile 'com.android.support:appcompat-v7:24.1.1'
     compile 'com.google.android.gms:play-services-location:9.2.1'
     compile 'io.reactivex:rxjava:1.1.8'
     compile 'com.google.code.gson:gson:2.7'
+
+    androidTestCompile 'io.reactivex:rxandroid:1.2.1'
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+
 }
 
 group = 'net.kjulio.RxLocation'

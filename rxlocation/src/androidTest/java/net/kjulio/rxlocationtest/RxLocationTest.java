@@ -20,9 +20,6 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(AndroidJUnit4.class)
 public class RxLocationTest {
 
-//    @Rule
-//    public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule<>(MainActivity.class);
-
     private Context context; // Context of the app under test.
     private RxLocation rxLocation; // Class under test.
 
@@ -34,7 +31,7 @@ public class RxLocationTest {
 
     @Test
     public void appPackageName() {
-        assertEquals("net.kjulio.rxlocationtest", context.getPackageName());
+        assertEquals("net.kjulio.rxlocation.test", context.getPackageName());
     }
 
     @Test
