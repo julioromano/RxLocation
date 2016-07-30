@@ -17,7 +17,7 @@ Add this to your module's gradle.conf:
 
 ```groovy
 dependencies {
-    compile 'net.kjulio.RxLocation:rxlocation:0.3-alpha'
+    compile 'net.kjulio.RxLocation:rxlocation:0.4-beta'
 }
 ```
 
