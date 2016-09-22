@@ -60,7 +60,7 @@ dependencies {
 }
 
 group = 'net.kjulio.RxLocation'
-version = '0.5.1-beta'
+version = '0.5.2-beta'
 
 bintray {
     user = System.getenv('BINTRAY_USER')
