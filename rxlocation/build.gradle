@@ -4,7 +4,7 @@ apply plugin: 'com.jfrog.bintray'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion "24.0.2"
 
     defaultConfig {
         minSdkVersion 10
@@ -48,9 +48,9 @@ android {
 
 dependencies {
 
-    compile 'com.android.support:appcompat-v7:24.1.1'
-    compile 'com.google.android.gms:play-services-location:9.2.1'
-    compile 'io.reactivex:rxjava:1.1.8'
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.google.android.gms:play-services-location:9.6.0'
+    compile 'io.reactivex:rxjava:1.2.0'
     compile 'com.google.code.gson:gson:2.7'
 
     androidTestCompile 'io.reactivex:rxandroid:1.2.1'
@@ -60,7 +60,7 @@ dependencies {
 }
 
 group = 'net.kjulio.RxLocation'
-version = '0.4-beta'
+version = '0.5-beta'
 
 bintray {
     user = System.getenv('BINTRAY_USER')
