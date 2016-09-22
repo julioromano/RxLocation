@@ -60,7 +60,7 @@ dependencies {
 }
 
 group = 'net.kjulio.RxLocation'
-version = '0.5-beta'
+version = '0.5.1-beta'
 
 bintray {
     user = System.getenv('BINTRAY_USER')
@@ -70,10 +70,10 @@ bintray {
         name = 'RxLocation'
 
         version {
-            name = "$version"
+            name = project.version
             desc = 'An Android Library to get location updates with a nice and clean rxJava API.'
             released  = new Date()
-            vcsTag = "v + $version"
+            vcsTag = 'v' + project.version
         }
 
         licenses = ['Apache-2.0']
