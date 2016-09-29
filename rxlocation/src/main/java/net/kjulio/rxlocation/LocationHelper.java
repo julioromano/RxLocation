@@ -40,8 +40,13 @@ public class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
     }
 
     void start(Subscriber<? super Location> subscriber) {
-        if (subscriber == null) {
-            googleApiClient.connect();
+        if (this.subscriber == null) {
+            if (subscriber != null) {
+                this.subscriber = subscriber;
+                googleApiClient.connect();
+            } else {
+                throw new RuntimeException("Null subscriber.");
+            }
         } else {
             throw new RuntimeException("Already started.");
         }
