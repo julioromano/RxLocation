@@ -30,7 +30,7 @@ public class PermissionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (RxLocationImpl.checkPermissions(this)) {
+        if (PermissionsUtils.checkPermissions(this)) {
             finish();
         } else {
             ActivityCompat.requestPermissions(this, LOCATION_PERMISSIONS, LOC_REQ_CODE);
@@ -46,8 +46,8 @@ public class PermissionActivity extends AppCompatActivity {
                 grantResults[1] == PackageManager.PERMISSION_GRANTED) {
         } else {
         }
-        synchronized (RxLocationImpl.globalLock) {
-            RxLocationImpl.globalLock.notifyAll();
+        synchronized (RxLocation.permissionsRequestLock) {
+            RxLocation.permissionsRequestLock.notifyAll();
         }
         finish();
     }
