@@ -3,7 +3,6 @@ package net.kjulio.rxlocation;
 import android.content.Context;
 import android.location.Location;
 import android.os.Looper;
-import android.support.annotation.NonNull;
 
 import com.google.android.gms.location.LocationRequest;
 
@@ -28,8 +27,7 @@ public abstract class RxLocation {
     public static RxLocation newInstance(Context context) {
         return new RxLocationImpl(
                 context,
-                Looper.getMainLooper(),
-                new LocationStorageFactory(context).getInstance()
+                Looper.getMainLooper()
         );
     }
 
@@ -53,14 +51,4 @@ public abstract class RxLocation {
     public abstract Single<Location> locationSingle();
 
     public abstract Single<Location> locationSingle(LocationRequest locationRequest);
-
-    /**
-     * Get the last known location. This data is persisted across Application restarts.
-     * Doesn't activate location services so if none of the locationObservable() or locationSingle()
-     * methods have ever been called first, 0.00/0.00 will be returned.
-     *
-     * @return The last known location. Returns 0.00/0.00 if the app doesn't have
-     *          location permission or if location data is not available.
-     */
-    public abstract @NonNull Location lastLocation();
 }
