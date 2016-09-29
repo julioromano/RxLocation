@@ -14,59 +14,33 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import java.io.Closeable;
+
 import rx.Subscriber;
 
 /**
  * Object that manages a location request and its callbacks sending signals to a rx Subscriber.
  */
 class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener, Closeable {
 
     private final Context context;
     private final LocationRequest locationRequest;
+    private final Subscriber<? super Location> subscriber;
     private final GoogleApiClient googleApiClient;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    private Subscriber<? super Location> subscriber = null;
-
-    LocationHelper(Context context, LocationRequest locationRequest) {
+    LocationHelper(Context context, LocationRequest locationRequest, Subscriber<? super Location> subscriber) {
         this.context = context;
         this.locationRequest = locationRequest;
+        this.subscriber = subscriber;
         this.googleApiClient = new GoogleApiClient.Builder(context)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-    }
-
-    void start(Subscriber<? super Location> subscriber) {
-        if (this.subscriber == null) {
-            if (subscriber != null) {
-                this.subscriber = subscriber;
-                googleApiClient.blockingConnect();
-                onGapiConnected();
-            } else {
-                throw new RuntimeException("Null subscriber.");
-            }
-        } else {
-            throw new RuntimeException("Already started.");
-        }
-    }
-
-    void stop() {
-        if (subscriber != null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    LocationServices.FusedLocationApi.removeLocationUpdates(
-                            googleApiClient, LocationHelper.this);
-                    googleApiClient.disconnect();
-                    subscriber = null;
-                }
-            });
-        } else {
-            throw new RuntimeException("Already stopped.");
-        }
+        this.googleApiClient.blockingConnect();
+        onGapiConnected();
     }
 
     private void onGapiConnected() {
@@ -75,7 +49,8 @@ class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
         } else {
             // Spawn permission request activity
             PermissionActivity.requestPermissions(context);
-            // wait on global globalLock
+            // wait on global globalLock. This code must not run on the UI thread or it will block
+            // it and PermissionRequestActivity will also block.
             synchronized (RxLocation.permissionsRequestLock) {
                 try {
                     RxLocation.permissionsRequestLock.wait();
@@ -83,7 +58,7 @@ class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
                     subscriber.onError(e);
                 }
             }
-            // when globalLock released  recheck for error or go on
+            // when globalLock is released by PermissionActivity recheck permissions and go on.
             if (PermissionsUtils.checkPermissions(context)) {
                 requestLocationUpdates();
             } else {
@@ -106,22 +81,46 @@ class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
         });
     }
 
+    @Override
+    public void close() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                LocationServices.FusedLocationApi.removeLocationUpdates(
+                        googleApiClient, LocationHelper.this);
+                googleApiClient.disconnect();
+            }
+        });
+    }
+
+    /**
+     * All GoogleApi callbacks (onConnected, onConnectionSuspended, onConnectionFailed,
+     * onLocationChanged) are invoked from the UI thread.
+     *
+     * Care should be taken at what code is called from within these methods as it might block
+     * the UI thread.
+     */
 
     @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        // Callback called on UI thread. Don't use it.
-    }
+    public void onConnected(@Nullable Bundle bundle) {}
 
     @Override
     public void onConnectionSuspended(int i) {
-        // TODO: Consider propagating the connection suspension with onError().
-        // Shall we propagate the suspension as onError or shall we just ignore it?
-        // If we propagate it the subscription will be cancelled when a connection suspension
-        // occurs, if we ignore it the subscription will stay and upon reconnection the observable
-        // will go on emitting items.
-        // For the moment we ignore it and defer further discussion about this topic.
+        // Method's body left empty as we deem it's the best behavior.
         //
-        // subscriber.onError(new GapiConnectionSuspended(i));
+        // http://stackoverflow.com/a/27350444/972721
+        // onConnectionSuspended() is called for example when a user intentionally disables or
+        // uninstalls Google Play Services.
+        //
+        // http://stackoverflow.com/a/26147518/972721
+        // After the library calls onConnectionSuspended() it will automatically try to reconnect,
+        // if it fails onConnectionFailed() will be inovked otherwise normal operation will resume.
+        //
+        // Shall we propagate the onConnectionSuspended() as onError() or shall we just ignore it?
+        // If we propagate it the subscription will be cancelled when a connection suspension
+        // occurs, if we ignore it the subscription will stay and upon successful reconnection the
+        // observable will go on emitting items. If the reconnection fails onConnectionFailed()
+        // will be called and our subscription will be cancelled.
     }
 
     @Override

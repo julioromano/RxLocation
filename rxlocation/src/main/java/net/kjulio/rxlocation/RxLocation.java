@@ -6,9 +6,9 @@ import android.location.Location;
 import com.google.android.gms.location.LocationRequest;
 
 import rx.Observable;
-import rx.Single;
 import rx.Subscriber;
 import rx.functions.Action0;
+import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 
 /**
@@ -39,13 +39,12 @@ public class RxLocation {
             public void call(Subscriber<? super Location> subscriber) {
                 try {
                     if (!subscriber.isUnsubscribed()) {
-                        final LocationHelper locationHelper = new LocationHelper(context, locationRequest);
-                        locationHelper.start(subscriber);
-
+                        final LocationHelper locationHelper =
+                                new LocationHelper(context, locationRequest, subscriber);
                         subscriber.add(Subscriptions.create(new Action0() {
                             @Override
                             public void call() {
-                                locationHelper.stop();
+                                locationHelper.close();
                             }
                         }));
                     }
@@ -53,7 +52,7 @@ public class RxLocation {
                     subscriber.onError(e);
                 }
             }
-        });
+        }).subscribeOn(Schedulers.newThread()); // Mandatory as we use gapi blockingConnect().
     }
 
 }
