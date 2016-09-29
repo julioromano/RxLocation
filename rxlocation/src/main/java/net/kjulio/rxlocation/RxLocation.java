@@ -2,12 +2,14 @@ package net.kjulio.rxlocation;
 
 import android.content.Context;
 import android.location.Location;
-import android.os.Looper;
 
 import com.google.android.gms.location.LocationRequest;
 
 import rx.Observable;
 import rx.Single;
+import rx.Subscriber;
+import rx.functions.Action0;
+import rx.subscriptions.Subscriptions;
 
 /**
  * RxLocation.
@@ -16,20 +18,11 @@ import rx.Single;
  *
  * https://github.com/julioromano/RxLocation
  */
-public abstract class RxLocation {
+public class RxLocation {
 
-    /**
-     * Returns a new instance of the RxLocation library.
-     *
-     * @param context the current application or activity context.
-     * @return a new instance of RxLocation
-     */
-    public static RxLocation newInstance(Context context) {
-        return new RxLocationImpl(
-                context,
-                Looper.getMainLooper()
-        );
-    }
+    static final Object permissionsRequestLock = new Object();
+
+    private RxLocation() {}
 
     /**
      * Clients subscribe to the location helper via this method.
@@ -39,16 +32,36 @@ public abstract class RxLocation {
      *
      * @return an Observable that returns Location items.
      */
-    public abstract Observable<Location> locationObservable();
+    public static Observable<Location> locationObservable(final Context context, final LocationRequest locationRequest) {
 
-    public abstract Observable<Location> locationObservable(LocationRequest locationRequest);
+        return Observable.create(new Observable.OnSubscribe<Location>() {
+            @Override
+            public void call(Subscriber<? super Location> subscriber) {
+                try {
+                    if (!subscriber.isUnsubscribed()) {
+                        final LocationHelper locationHelper = new LocationHelper(context, locationRequest);
+                        locationHelper.start(subscriber);
+
+                        subscriber.add(Subscriptions.create(new Action0() {
+                            @Override
+                            public void call() {
+                                locationHelper.stop();
+                            }
+                        }));
+                    }
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        });
+    }
 
     /**
      * Gets a single Location value.
      *
      * @return
      */
-    public abstract Single<Location> locationSingle();
-
-    public abstract Single<Location> locationSingle(LocationRequest locationRequest);
+    public static Single<Location> locationSingle(final Context context, final LocationRequest locationRequest) {
+        return locationObservable(context, locationRequest).first().toSingle();
+    }
 }
