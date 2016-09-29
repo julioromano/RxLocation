@@ -19,7 +19,7 @@ import rx.Subscriber;
 /**
  * Object that manages a location request and its callbacks sending signals to a rx Subscriber.
  */
-public class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
+class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private final Context context;
@@ -43,7 +43,8 @@ public class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
         if (this.subscriber == null) {
             if (subscriber != null) {
                 this.subscriber = subscriber;
-                googleApiClient.connect();
+                googleApiClient.blockingConnect();
+                onGapiConnected();
             } else {
                 throw new RuntimeException("Null subscriber.");
             }
@@ -68,8 +69,7 @@ public class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
         }
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
+    private void onGapiConnected() {
         if (PermissionsUtils.checkPermissions(context)) {
             requestLocationUpdates();
         } else {
@@ -104,6 +104,12 @@ public class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
                 }
             }
         });
+    }
+
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        // Callback called on UI thread. Don't use it.
     }
 
     @Override
