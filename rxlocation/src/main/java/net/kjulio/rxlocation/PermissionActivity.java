@@ -3,7 +3,6 @@ package net.kjulio.rxlocation;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -41,14 +40,11 @@ public class PermissionActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOC_REQ_CODE && grantResults.length == 2 &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-        } else {
+        if (requestCode == LOC_REQ_CODE) {
+            synchronized (RxLocation.permissionsRequestLock) {
+                RxLocation.permissionsRequestLock.notifyAll();
+            }
+            finish();
         }
-        synchronized (RxLocation.permissionsRequestLock) {
-            RxLocation.permissionsRequestLock.notifyAll();
-        }
-        finish();
     }
 }
