@@ -56,12 +56,4 @@ public class RxLocation {
         });
     }
 
-    /**
-     * Gets a single Location value.
-     *
-     * @return
-     */
-    public static Single<Location> locationSingle(final Context context, final LocationRequest locationRequest) {
-        return locationObservable(context, locationRequest).first().toSingle();
-    }
 }
