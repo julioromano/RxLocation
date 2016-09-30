@@ -6,6 +6,7 @@ import android.location.Location;
 import com.google.android.gms.location.LocationRequest;
 
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.functions.Action0;
 import rx.schedulers.Schedulers;
@@ -20,19 +21,16 @@ import rx.subscriptions.Subscriptions;
  */
 public class RxLocation {
 
-    static final Object permissionsRequestLock = new Object();
-
     private RxLocation() {}
 
     /**
-     * Clients subscribe to the location helper via this method.
-     * By default the issued observable times out after 5 seconds to prevent indefinite waits
-     * when the location data takes too long to arrive (e.g. when GPS only location is enabled on
-     * the device and the device is indoors).
+     * Clients subscribe to get location updates via this method.
      *
      * @return an Observable that returns Location items.
      */
     public static Observable<Location> locationObservable(final Context context, final LocationRequest locationRequest) {
+
+        Scheduler scheduler = Schedulers.newThread();
 
         return Observable.create(new Observable.OnSubscribe<Location>() {
             @Override
@@ -52,7 +50,13 @@ public class RxLocation {
                     subscriber.onError(e);
                 }
             }
-        }).subscribeOn(Schedulers.newThread()); // Mandatory as we use gapi blockingConnect().
+        })
+                // Mandatory as we use gapi blockingConnect().
+                .subscribeOn(scheduler)
+                // Location callbacks happen on the UI thread so we force them to happen on the same
+                // scheduler as we run the subscription in for consistency. This setting can be
+                // overridden by the user.
+                .observeOn(scheduler);
     }
 
 }

@@ -24,14 +24,19 @@ import rx.Subscriber;
 class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener, Closeable {
 
-    private final Context context;
     private final LocationRequest locationRequest;
     private final Subscriber<? super Location> subscriber;
     private final GoogleApiClient googleApiClient;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
+    /**
+     * This constructor must not be called from the UI thread because it uses
+     * googleApiClient.blockingConnect() blocking function.
+     */
     LocationHelper(Context context, LocationRequest locationRequest, Subscriber<? super Location> subscriber) {
-        this.context = context;
+        if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
+            throw new RuntimeException("LocationHelper() must not be called from the main thread.");
+        }
         this.locationRequest = locationRequest;
         this.subscriber = subscriber;
         this.googleApiClient = new GoogleApiClient.Builder(context)
@@ -39,27 +44,24 @@ class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        this.googleApiClient.blockingConnect();
-        onGapiConnected();
-    }
 
-    private void onGapiConnected() {
-        if (PermissionsUtils.checkPermissions(context)) {
+        this.googleApiClient.blockingConnect();
+        if (PermissionsActivity.checkPermissions(context)) {
             requestLocationUpdates();
         } else {
             // Spawn permission request activity
-            PermissionActivity.requestPermissions(context);
+            PermissionsActivity.requestPermissions(context);
             // wait on global globalLock. This code must not run on the UI thread or it will block
             // it and PermissionRequestActivity will also block.
-            synchronized (RxLocation.permissionsRequestLock) {
+            synchronized (PermissionsActivity.permissionsRequestLock) {
                 try {
-                    RxLocation.permissionsRequestLock.wait();
-                }catch (InterruptedException e) {
+                    PermissionsActivity.permissionsRequestLock.wait();
+                } catch (InterruptedException e) {
                     subscriber.onError(e);
                 }
             }
-            // when globalLock is released by PermissionActivity recheck permissions and go on.
-            if (PermissionsUtils.checkPermissions(context)) {
+            // when globalLock is released by PermissionsActivity recheck permissions and go on.
+            if (PermissionsActivity.checkPermissions(context)) {
                 requestLocationUpdates();
             } else {
                 subscriber.onError(new SecurityException("Location permission not granted."));
@@ -114,7 +116,7 @@ class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
         //
         // http://stackoverflow.com/a/26147518/972721
         // After the library calls onConnectionSuspended() it will automatically try to reconnect,
-        // if it fails onConnectionFailed() will be inovked otherwise normal operation will resume.
+        // if it fails onConnectionFailed() will be invoked otherwise normal operation will resume.
         //
         // Shall we propagate the onConnectionSuspended() as onError() or shall we just ignore it?
         // If we propagate it the subscription will be cancelled when a connection suspension
@@ -125,7 +127,7 @@ class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        subscriber.onError(new GapiConnectionFailed(connectionResult));
+        subscriber.onError(new GapiConnectionFailedException(connectionResult));
     }
 
     @Override

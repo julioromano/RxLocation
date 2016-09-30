@@ -7,7 +7,7 @@
 
     <application>
         <activity
-            android:name=".PermissionActivity"
+            android:name=".PermissionsActivity"
             android:noHistory="true"
             android:theme="@style/PermissionActivityTheme" />
     </application>
