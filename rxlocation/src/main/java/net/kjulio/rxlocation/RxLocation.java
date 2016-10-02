@@ -26,6 +26,12 @@ public class RxLocation {
     /**
      * Clients subscribe to get location updates via this method.
      *
+     * This observable will never call onComplete() thus manual unsubscribe() is necessary.
+     *
+     * When using setExpirationDuration() or setNumUpdates() or setExpirationTime() the observable
+     * will not terminate automatically and will just stop emitting new items without releasing any
+     * resources.
+     *
      * @return an Observable that returns Location items.
      */
     public static Observable<Location> locationObservable(final Context context, final LocationRequest locationRequest) {
