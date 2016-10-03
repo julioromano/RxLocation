@@ -4,17 +4,17 @@ import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-
-import java.io.Closeable;
 
 import rx.Subscriber;
 
@@ -22,30 +22,80 @@ import rx.Subscriber;
  * Object that manages a location request and its callbacks sending signals to a rx Subscriber.
  */
 class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener, Closeable {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    private final LocationRequest locationRequest;
+    private final Context context;
     private final Subscriber<? super Location> subscriber;
+    private final HandlerThread handlerThread;
+    private final Handler handler;
     private final GoogleApiClient googleApiClient;
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final LocationRequest locationRequest;
 
     /**
      * This constructor must not be called from the UI thread because it uses
      * googleApiClient.blockingConnect() blocking function.
      */
     LocationHelper(Context context, LocationRequest locationRequest, Subscriber<? super Location> subscriber) {
-        if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
-            throw new RuntimeException("LocationHelper() must not be called from the main thread.");
-        }
-        this.locationRequest = locationRequest;
+        this.context = context;
         this.subscriber = subscriber;
+        this.handlerThread = new HandlerThread("MyHandlerThread");
+        this.handlerThread.start();
+        this.handler = new Handler(handlerThread.getLooper());
         this.googleApiClient = new GoogleApiClient.Builder(context)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
+                .setHandler(handler)
                 .build();
+        this.locationRequest = locationRequest;
+    }
 
-        this.googleApiClient.blockingConnect();
+    void start() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                googleApiClient.connect();
+            }
+        });
+    }
+
+    void stop() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                removeLocationUpdates();
+                googleApiClient.disconnect();
+            }
+        });
+        handlerThread.quit();
+        handlerThread.interrupt();
+    }
+
+    private PendingResult<Status> requestLocationUpdates() {
+        try {
+            return LocationServices.FusedLocationApi.requestLocationUpdates(
+                    googleApiClient, locationRequest, LocationHelper.this);
+        } catch (SecurityException e) {
+            subscriber.onError(e);
+            return null;
+        }
+    }
+
+    private PendingResult<Status> removeLocationUpdates() {
+        return LocationServices.FusedLocationApi.removeLocationUpdates(
+                googleApiClient, LocationHelper.this);
+    }
+
+    /**
+     * All GoogleApi callbacks (onConnected, onConnectionSuspended, onConnectionFailed,
+     * onLocationChanged) are invoked from the UI thread.
+     *
+     * Care should be taken at what code is called from within these methods as it might block
+     * the UI thread.
+     */
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
         if (PermissionsActivity.checkPermissions(context)) {
             requestLocationUpdates();
         } else {
@@ -68,43 +118,6 @@ class LocationHelper implements GoogleApiClient.ConnectionCallbacks,
             }
         }
     }
-
-    private void requestLocationUpdates() {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    LocationServices.FusedLocationApi.requestLocationUpdates(
-                            googleApiClient, locationRequest, LocationHelper.this);
-                } catch (SecurityException e) {
-                    subscriber.onError(e);
-                }
-            }
-        });
-    }
-
-    @Override
-    public void close() {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                LocationServices.FusedLocationApi.removeLocationUpdates(
-                        googleApiClient, LocationHelper.this);
-                googleApiClient.disconnect();
-            }
-        });
-    }
-
-    /**
-     * All GoogleApi callbacks (onConnected, onConnectionSuspended, onConnectionFailed,
-     * onLocationChanged) are invoked from the UI thread.
-     *
-     * Care should be taken at what code is called from within these methods as it might block
-     * the UI thread.
-     */
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {}
 
     @Override
     public void onConnectionSuspended(int i) {

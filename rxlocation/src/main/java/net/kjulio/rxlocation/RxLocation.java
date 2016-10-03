@@ -6,10 +6,8 @@ import android.location.Location;
 import com.google.android.gms.location.LocationRequest;
 
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscriber;
 import rx.functions.Action0;
-import rx.schedulers.Schedulers;
 import rx.subscriptions.Subscriptions;
 
 /**
@@ -35,9 +33,6 @@ public class RxLocation {
      * @return an Observable that returns Location items.
      */
     public static Observable<Location> locationObservable(final Context context, final LocationRequest locationRequest) {
-
-        Scheduler scheduler = Schedulers.newThread();
-
         return Observable.create(new Observable.OnSubscribe<Location>() {
             @Override
             public void call(Subscriber<? super Location> subscriber) {
@@ -45,10 +40,11 @@ public class RxLocation {
                     if (!subscriber.isUnsubscribed()) {
                         final LocationHelper locationHelper =
                                 new LocationHelper(context, locationRequest, subscriber);
+                        locationHelper.start();
                         subscriber.add(Subscriptions.create(new Action0() {
                             @Override
                             public void call() {
-                                locationHelper.close();
+                                locationHelper.stop();
                             }
                         }));
                     }
@@ -56,13 +52,7 @@ public class RxLocation {
                     subscriber.onError(e);
                 }
             }
-        })
-                // Mandatory as we use gapi blockingConnect().
-                .subscribeOn(scheduler)
-                // Location callbacks happen on the UI thread so we force them to happen on the same
-                // scheduler as we run the subscription in for consistency. This setting can be
-                // overridden by the user.
-                .observeOn(scheduler);
+        });
     }
 
 }
