@@ -23,6 +23,8 @@ public class PermissionsActivity extends AppCompatActivity {
     // request dialog.
     static final Object permissionsRequestLock = new Object();
 
+    static boolean permissionsRequestInprogress = false;
+
     static boolean checkPermissions(Context context) {
         int coarseLocPerm = ActivityCompat.checkSelfPermission(
                 context, Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -33,21 +35,37 @@ public class PermissionsActivity extends AppCompatActivity {
                 fineLocPerm == PackageManager.PERMISSION_GRANTED);
     }
 
+    /**
+     * ALWAYS START THIS ACTIVITY USING THIS HELPER METHOD.
+     */
     static void requestPermissions(Context context) {
-        Intent intent = new Intent(context, PermissionsActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+        if (!permissionsRequestInprogress) {
+            Intent intent = new Intent(context, PermissionsActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (checkPermissions(this)) {
-            notifyObservers();
-            finish();
-        } else {
-            ActivityCompat.requestPermissions(this, LOCATION_PERMISSIONS, LOC_REQ_CODE);
+        // This if handles the case in which the user rotated the device while already showing
+        // this activity leading to it be recreated.
+        if (!permissionsRequestInprogress) {
+            permissionsRequestInprogress = true;
+            if (checkPermissions(this)) {
+                notifyObservers();
+                finish();
+            } else {
+                ActivityCompat.requestPermissions(this, LOCATION_PERMISSIONS, LOC_REQ_CODE);
+            }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        permissionsRequestInprogress = false;
     }
 
     @Override

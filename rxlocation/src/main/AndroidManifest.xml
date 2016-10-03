@@ -9,7 +9,11 @@
         <activity
             android:name=".PermissionsActivity"
             android:noHistory="true"
-            android:theme="@style/PermissionActivityTheme" />
+            android:theme="@style/InvisibleActivityTheme" />
+        <activity
+            android:name=".ErrorResolutionActivity"
+            android:noHistory="true"
+            android:theme="@style/InvisibleActivityTheme" />
     </application>
 
 </manifest>

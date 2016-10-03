@@ -37,8 +37,18 @@ public class RxLocationTest {
     }
 
     @Test
-    public void testBasicLocation() {
+    public void testLocationUpdates() {
         Location location = RxLocation.locationUpdates(context, defaultLocationRequest)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .toBlocking()
+                .first();
+        assertNotNull(location);
+    }
+
+    @Test
+    public void testLastLocation() {
+        Location location = RxLocation.lastLocation(context)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .toBlocking()

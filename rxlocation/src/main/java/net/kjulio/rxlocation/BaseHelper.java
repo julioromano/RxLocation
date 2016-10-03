@@ -29,6 +29,9 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
     final Subscriber<? super Location> subscriber;
     final GoogleApiClient googleApiClient;
 
+    // Bool to track whether the app is already resolving an error
+    private boolean resolvingError = false;
+
     BaseHelper(Context context, Subscriber<? super Location> subscriber) {
         this.handlerThread = new HandlerThread("BaseHelperHandlerThread");
         this.handlerThread.start();
@@ -121,6 +124,27 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        subscriber.onError(new GapiConnectionFailedException(connectionResult));
+        if (connectionResult.hasResolution()) {
+            // Spawn error resolution activity
+            ErrorResolutionActivity.resolveError(context, connectionResult);
+            // wait on global globalLock. This code must not run on the UI thread or it will block
+            // it and ErrorResolutionActivity will also block.
+            synchronized (ErrorResolutionActivity.errorResolutionLock) {
+                try {
+                    ErrorResolutionActivity.errorResolutionLock.wait();
+                } catch (InterruptedException e) {
+                    subscriber.onError(e);
+                }
+            }
+            // when globalLock is released by PermissionsActivity recheck permissions and go on.
+            // TODO: Is it safe to call again connect() inside onConnectionFailed() ?
+            // Maybe we should use a counter variable to avoid recalling googleApiClient.connect()
+            // twice and instead execute subscriber.onError();
+            googleApiClient.connect();
+        }  else {
+            // TODO: Show the default UI when there is no resolution.
+            // https://developers.google.com/android/guides/api-client
+            subscriber.onError(new GapiConnectionFailedException(connectionResult));
+        }
     }
 }
