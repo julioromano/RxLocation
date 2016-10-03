@@ -25,20 +25,17 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
 
     private final HandlerThread handlerThread;
     private final Handler handler;
-    final Context context;
+    private final Context context;
     final Subscriber<? super Location> subscriber;
     final GoogleApiClient googleApiClient;
 
-    // Bool to track whether the app is already resolving an error
-    private boolean resolvingError = false;
-
     BaseHelper(Context context, Subscriber<? super Location> subscriber) {
-        this.handlerThread = new HandlerThread("BaseHelperHandlerThread");
-        this.handlerThread.start();
-        this.handler = new Handler(handlerThread.getLooper());
+        handlerThread = new HandlerThread("BaseHelperHandlerThread");
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
         this.context = context;
         this.subscriber = subscriber;
-        this.googleApiClient = new GoogleApiClient.Builder(this.context)
+        googleApiClient = new GoogleApiClient.Builder(context)
                 .setHandler(handler)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
