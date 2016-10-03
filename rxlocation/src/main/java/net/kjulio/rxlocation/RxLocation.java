@@ -6,9 +6,6 @@ import android.location.Location;
 import com.google.android.gms.location.LocationRequest;
 
 import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action0;
-import rx.subscriptions.Subscriptions;
 
 /**
  * RxLocation.
@@ -32,27 +29,13 @@ public class RxLocation {
      *
      * @return an Observable that returns Location items.
      */
-    public static Observable<Location> locationObservable(final Context context, final LocationRequest locationRequest) {
-        return Observable.create(new Observable.OnSubscribe<Location>() {
-            @Override
-            public void call(Subscriber<? super Location> subscriber) {
-                try {
-                    if (!subscriber.isUnsubscribed()) {
-                        final LocationHelper locationHelper =
-                                new LocationHelper(context, locationRequest, subscriber);
-                        locationHelper.start();
-                        subscriber.add(Subscriptions.create(new Action0() {
-                            @Override
-                            public void call() {
-                                locationHelper.stop();
-                            }
-                        }));
-                    }
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
-            }
-        });
+    public static Observable<Location> locationUpdates(Context context,
+                                                          LocationRequest locationRequest) {
+        return LocationUpdatesHelper.observable(context, locationRequest);
+    }
+
+    public static Observable<Location> lastLocation(Context context) {
+        return LastLocationHelper.observable(context);
     }
 
 }

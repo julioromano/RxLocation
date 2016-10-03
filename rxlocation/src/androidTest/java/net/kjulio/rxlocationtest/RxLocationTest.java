@@ -38,7 +38,7 @@ public class RxLocationTest {
 
     @Test
     public void testBasicLocation() {
-        Location location = RxLocation.locationObservable(context, defaultLocationRequest)
+        Location location = RxLocation.locationUpdates(context, defaultLocationRequest)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .toBlocking()
