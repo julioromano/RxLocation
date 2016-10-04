@@ -13,22 +13,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import rx.observers.TestSubscriber;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 @RunWith(AndroidJUnit4.class)
 public class RxLocationTest {
 
     private Context context; // Context of the app under test.
-    private final LocationRequest defaultLocationRequest = LocationRequest.create()
-            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    private TestSubscriber<Location> testSubscriber;
 
     @Before
     public void setUp() {
         context = InstrumentationRegistry.getTargetContext();
+        testSubscriber = TestSubscriber.create();
     }
 
     @Test
@@ -37,23 +35,21 @@ public class RxLocationTest {
     }
 
     @Test
-    public void testLocationUpdates() {
-        Location location = RxLocation.locationUpdates(context, defaultLocationRequest)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .toBlocking()
-                .first();
-        assertNotNull(location);
+    public void testLastLocation() {
+        // Successful run of lastLocation() observable.
+        RxLocation.lastLocation(context).toBlocking().subscribe(testSubscriber);
+        testSubscriber.assertValueCount(1);
+        testSubscriber.assertCompleted();
     }
 
     @Test
-    public void testLastLocation() {
-        Location location = RxLocation.lastLocation(context)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .toBlocking()
-                .first();
-        assertNotNull(location);
+    public void testLocationUpdates() {
+        // Successful run of locationUpdates() observable.
+        LocationRequest defaultLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_NO_POWER);
+        RxLocation.locationUpdates(context, defaultLocationRequest)
+                .first().toBlocking().subscribe(testSubscriber);
+        testSubscriber.assertValueCount(1);
     }
 
 }
