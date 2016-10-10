@@ -18,7 +18,7 @@ import rx.observers.TestSubscriber;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
-public class RxLocationTest {
+public class RxLocationAndroidTest {
 
     private Context context; // Context of the app under test.
     private TestSubscriber<Location> testSubscriber;

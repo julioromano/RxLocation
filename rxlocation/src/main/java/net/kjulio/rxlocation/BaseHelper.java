@@ -11,7 +11,6 @@ import android.support.annotation.Nullable;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
 
 import rx.Subscriber;
 import rx.functions.Action0;
@@ -29,18 +28,14 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
     final Subscriber<? super Location> subscriber;
     final GoogleApiClient googleApiClient;
 
-    BaseHelper(Context context, Subscriber<? super Location> subscriber) {
+    BaseHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
+               Subscriber<? super Location> subscriber) {
         handlerThread = new HandlerThread("BaseHelperHandlerThread");
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper());
         this.context = context;
         this.subscriber = subscriber;
-        googleApiClient = new GoogleApiClient.Builder(context)
-                .setHandler(handler)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
+        this.googleApiClient = googleApiClientFactory.create(context, handler, this, this);
         subscriber.add(Subscriptions.create(new Action0() {
             @Override
             public void call() {

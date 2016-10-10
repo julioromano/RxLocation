@@ -31,11 +31,13 @@ public class RxLocation {
      */
     public static Observable<Location> locationUpdates(Context context,
                                                           LocationRequest locationRequest) {
-        return LocationUpdatesHelper.observable(context, locationRequest);
+        return LocationUpdatesHelper.observable(context, new GoogleApiClientFactoryImpl(),
+                new FusedLocationProviderFactoryImpl(), locationRequest);
     }
 
     public static Observable<Location> lastLocation(Context context) {
-        return LastLocationHelper.observable(context);
+        return LastLocationHelper.observable(context, new GoogleApiClientFactoryImpl(),
+                new FusedLocationProviderFactoryImpl());
     }
 
 }

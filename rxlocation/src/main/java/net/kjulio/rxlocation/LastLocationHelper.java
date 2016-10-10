@@ -5,24 +5,31 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
-import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.FusedLocationProviderApi;
 
 import rx.Observable;
 import rx.Subscriber;
 
 class LastLocationHelper extends BaseHelper {
 
-    private LastLocationHelper(Context context, Subscriber<? super Location> subscriber) {
-        super(context, subscriber);
+    private final FusedLocationProviderApi fusedLocationProviderApi;
+
+    private LastLocationHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
+                               FusedLocationProviderFactory fusedLocationProviderFactory,
+                               Subscriber<? super Location> subscriber) {
+        super(context, googleApiClientFactory, subscriber);
+        this.fusedLocationProviderApi = fusedLocationProviderFactory.create();
     }
 
-    static Observable<Location> observable(final Context context) {
+    static Observable<Location> observable(final Context context, final GoogleApiClientFactory googleApiClientFactory,
+                                           final FusedLocationProviderFactory fusedLocationProviderFactory) {
         return Observable.create(new Observable.OnSubscribe<Location>() {
             @Override
             public void call(Subscriber<? super Location> subscriber) {
                 try {
                     if (!subscriber.isUnsubscribed()) {
-                        new LastLocationHelper(context, subscriber);
+                        new LastLocationHelper(context, googleApiClientFactory,
+                                fusedLocationProviderFactory, subscriber);
                     }
                 } catch (Exception e) {
                     subscriber.onError(e);
@@ -34,7 +41,7 @@ class LastLocationHelper extends BaseHelper {
     private void getLastLocation() {
         Location location;
         try {
-            location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+            location = fusedLocationProviderApi.getLastLocation(googleApiClient);
         } catch (SecurityException e) {
             subscriber.onError(e);
             return;
