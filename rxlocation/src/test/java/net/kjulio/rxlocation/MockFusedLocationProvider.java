@@ -19,8 +19,10 @@ class MockFusedLocationProvider implements FusedLocationProviderApi {
 
     @Override
     public Location getLastLocation(GoogleApiClient googleApiClient) {
-        // TODO
-        return null;
+        Location location = new Location("MockFusedLocationProvider");
+        location.setLatitude(1.23d);
+        location.setLongitude(1.234d);
+        return location;
     }
 
     @Override
@@ -30,8 +32,7 @@ class MockFusedLocationProvider implements FusedLocationProviderApi {
 
     @Override
     public PendingResult<Status> requestLocationUpdates(GoogleApiClient googleApiClient, LocationRequest locationRequest, LocationListener locationListener) {
-        // TODO
-        return null;
+        return new MockPendingResult<>();
     }
 
     @Override
@@ -51,8 +52,7 @@ class MockFusedLocationProvider implements FusedLocationProviderApi {
 
     @Override
     public PendingResult<Status> removeLocationUpdates(GoogleApiClient googleApiClient, LocationListener locationListener) {
-        // TODO
-        return null;
+        return new MockPendingResult<>();
     }
 
     @Override

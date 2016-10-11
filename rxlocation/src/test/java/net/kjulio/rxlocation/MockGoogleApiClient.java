@@ -1,6 +1,7 @@
 package net.kjulio.rxlocation;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
@@ -24,8 +25,6 @@ class MockGoogleApiClient extends GoogleApiClient {
     private final GoogleApiClient.OnConnectionFailedListener onConnectionFailedListener;
     private final boolean testConnectionFailure;
 
-    private boolean mockConnected;
-
     MockGoogleApiClient(Context context, Handler handler, ConnectionCallbacks connectionCallbacks,
                         OnConnectionFailedListener onConnectionFailedListener, boolean testConnectionFailure) {
         this.context = context;
@@ -33,13 +32,6 @@ class MockGoogleApiClient extends GoogleApiClient {
         this.connectionCallbacks = connectionCallbacks;
         this.onConnectionFailedListener = onConnectionFailedListener;
         this.testConnectionFailure = testConnectionFailure;
-    }
-
-    /**
-     * Mock Methods
-     */
-    boolean isMockConnected() {
-        return mockConnected;
     }
 
     /**
@@ -60,7 +52,6 @@ class MockGoogleApiClient extends GoogleApiClient {
     @Override
     public void connect() {
         if (testConnectionFailure) {
-            mockConnected = false;
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -68,11 +59,10 @@ class MockGoogleApiClient extends GoogleApiClient {
                 }
             });
         } else {
-            mockConnected = true;
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    connectionCallbacks.onConnected(null);
+                    connectionCallbacks.onConnected(new Bundle());
                 }
             });
         }
@@ -90,7 +80,7 @@ class MockGoogleApiClient extends GoogleApiClient {
 
     @Override
     public void disconnect() {
-        mockConnected = false;
+        throw new UnsupportedOperationException("Stub!");
     }
 
     @Override
