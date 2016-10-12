@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -30,9 +31,19 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
 
     BaseHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
                Subscriber<? super Location> subscriber) {
-        handlerThread = new HandlerThread("BaseHelperHandlerThread");
-        handlerThread.start();
-        handler = new Handler(handlerThread.getLooper());
+
+        Looper looper = Looper.myLooper();
+        if (looper != null) {
+            // Running on a Looper Thread. Use it to run callbacks.
+            handler = new Handler(looper);
+            handlerThread = null;
+        } else {
+            // Not running on a Looper Thread. Spawn a dedicated Looper Thread to handle callbacks.
+            handlerThread = new HandlerThread("BaseHelperHandlerThread");
+            handlerThread.start();
+            handler = new Handler(handlerThread.getLooper());
+        }
+
         this.context = context;
         this.subscriber = subscriber;
         this.googleApiClient = googleApiClientFactory.create(context, handler, this, this);
@@ -58,12 +69,15 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
                 googleApiClient.disconnect();
             }
         });
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            handlerThread.quitSafely();
-        } else {
-            handlerThread.quit();
+        // Shut down the deticated handler thread if it's been created.
+        if (handlerThread != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                handlerThread.quitSafely();
+            } else {
+                handlerThread.quit();
+            }
+            handlerThread.interrupt();
         }
-        handlerThread.interrupt();
     }
 
     abstract void onLocationPermissionsGranted();
