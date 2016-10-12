@@ -17,9 +17,6 @@ public class ErrorResolutionActivity extends AppCompatActivity {
     // Request code to use when launching the resolution activity
     private static final int REQUEST_RESOLVE_ERROR = 3013;
 
-    // Other objects wait on this lock while ErrorResolutionActivity shows the error resolution UI.
-    static final Object errorResolutionLock = new Object();
-
     static boolean errorResolutionInProgress = false;
 
     /**
@@ -28,7 +25,13 @@ public class ErrorResolutionActivity extends AppCompatActivity {
      * Precodnitions: This method must be called only after verifyng that
      * connectionResult.hasResult() == false.
      */
-    static void resolveError(Context context, ConnectionResult connectionResult) {
+    static void resolveError(Context context, BaseHelper baseHelper,
+                             ConnectionResult connectionResult) {
+
+        // Register the calling BaseHelper with the global lock to be notify
+        // it when ErrorResolutionActivity has finished.
+        ErrorResolutionLock.getInstance().addListener(baseHelper);
+
         if (!errorResolutionInProgress) {
             Intent intent = new Intent(context, ErrorResolutionActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -70,8 +73,6 @@ public class ErrorResolutionActivity extends AppCompatActivity {
     }
 
     private void notifyObservers() {
-        synchronized (errorResolutionLock) {
-            errorResolutionLock.notifyAll();
-        }
+        ErrorResolutionLock.getInstance().notifyListeners();
     }
 }

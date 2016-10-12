@@ -2,8 +2,6 @@ package net.kjulio.rxlocation;
 
 import android.content.Context;
 import android.location.Location;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Status;
@@ -64,7 +62,7 @@ class LocationUpdatesHelper extends BaseHelper implements LocationListener {
     }
 
     @Override
-    void onLocationPermissionsGranted(@Nullable Bundle bundle) {
+    void onLocationPermissionsGranted() {
         requestLocationUpdates();
     }
 

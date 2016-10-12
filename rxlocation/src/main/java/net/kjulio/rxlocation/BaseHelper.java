@@ -66,32 +66,34 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         handlerThread.interrupt();
     }
 
-    abstract void onLocationPermissionsGranted(@Nullable Bundle bundle);
+    abstract void onLocationPermissionsGranted();
 
     abstract void onGooglePlayServicesDisconnecting();
+
+    void onLocationPermissionDialogDismissed() {
+        // when globalLock is released by PermissionsActivity recheck permissions and go on.
+        if (PermissionsActivity.checkPermissions(context)) {
+            onLocationPermissionsGranted();
+        } else {
+            subscriber.onError(new SecurityException("Location permission not granted."));
+        }
+    }
+
+    void onErrorResolutionActivityDismissed() {
+        // when globalLock is released by ErrorResolutionActivity recheck permissions and go on.
+        // TODO: Is it safe to call again connect() inside onConnectionFailed() ?
+        // Maybe we should use a counter variable to avoid recalling googleApiClient.connect()
+        // twice and instead execute subscriber.onError();
+        googleApiClient.connect();
+    }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         if (PermissionsActivity.checkPermissions(context)) {
-            onLocationPermissionsGranted(bundle);
+            onLocationPermissionsGranted();
         } else {
             // Spawn permission request activity
-            PermissionsActivity.requestPermissions(context);
-            // wait on global globalLock. This code must not run on the UI thread or it will block
-            // it and PermissionRequestActivity will also block.
-            synchronized (PermissionsActivity.permissionsRequestLock) {
-                try {
-                    PermissionsActivity.permissionsRequestLock.wait();
-                } catch (InterruptedException e) {
-                    subscriber.onError(e);
-                }
-            }
-            // when globalLock is released by PermissionsActivity recheck permissions and go on.
-            if (PermissionsActivity.checkPermissions(context)) {
-                onLocationPermissionsGranted(bundle);
-            } else {
-                subscriber.onError(new SecurityException("Location permission not granted."));
-            }
+            PermissionsActivity.requestPermissions(context, this);
         }
     }
 
@@ -118,21 +120,7 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         if (connectionResult.hasResolution()) {
             // Spawn error resolution activity
-            ErrorResolutionActivity.resolveError(context, connectionResult);
-            // wait on global globalLock. This code must not run on the UI thread or it will block
-            // it and ErrorResolutionActivity will also block.
-            synchronized (ErrorResolutionActivity.errorResolutionLock) {
-                try {
-                    ErrorResolutionActivity.errorResolutionLock.wait();
-                } catch (InterruptedException e) {
-                    subscriber.onError(e);
-                }
-            }
-            // when globalLock is released by PermissionsActivity recheck permissions and go on.
-            // TODO: Is it safe to call again connect() inside onConnectionFailed() ?
-            // Maybe we should use a counter variable to avoid recalling googleApiClient.connect()
-            // twice and instead execute subscriber.onError();
-            googleApiClient.connect();
+            ErrorResolutionActivity.resolveError(context, this, connectionResult);
         }  else {
             // TODO: Show the default UI when there is no resolution.
             // https://developers.google.com/android/guides/api-client

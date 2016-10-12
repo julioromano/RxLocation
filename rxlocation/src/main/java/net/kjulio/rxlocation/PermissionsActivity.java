@@ -19,10 +19,6 @@ public class PermissionsActivity extends AppCompatActivity {
     private final static String[] LOCATION_PERMISSIONS =
             {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
 
-    // Other objects wait on this lock while PermissionsActivity shows the permissions
-    // request dialog.
-    static final Object permissionsRequestLock = new Object();
-
     static boolean permissionsRequestInprogress = false;
 
     static boolean checkPermissions(Context context) {
@@ -38,7 +34,12 @@ public class PermissionsActivity extends AppCompatActivity {
     /**
      * ALWAYS START THIS ACTIVITY USING THIS HELPER METHOD.
      */
-    static void requestPermissions(Context context) {
+    static void requestPermissions(Context context, BaseHelper baseHelper) {
+
+        // Register the calling BaseHelper with the global lock to be notify
+        // it when PermissionsRequestActivity has finished.
+        PermissionsRequestLock.getInstance().addListener(baseHelper);
+
         if (!permissionsRequestInprogress) {
             Intent intent = new Intent(context, PermissionsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -79,8 +80,6 @@ public class PermissionsActivity extends AppCompatActivity {
     }
 
     private void notifyObservers() {
-        synchronized (permissionsRequestLock) {
-            permissionsRequestLock.notifyAll();
-        }
+        PermissionsRequestLock.getInstance().notifyListeners();
     }
 }
