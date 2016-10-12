@@ -24,11 +24,16 @@ public class RxLocationAndroidTest {
 
     private Context context; // Context of the app under test.
     private TestSubscriber<Location> testSubscriber;
+    private LocationRequest locationRequest;
+    private RxLocation rxLocation;
 
     @Before
     public void setUp() {
         context = InstrumentationRegistry.getTargetContext();
         testSubscriber = TestSubscriber.create();
+        locationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        rxLocation = new RxLocation(context);
     }
 
     @Test
@@ -37,50 +42,60 @@ public class RxLocationAndroidTest {
     }
 
     @Test
-    public void testLastLocationUiThread() {
-        // Successful run of lastLocation() observable.
-        RxLocation.lastLocation(context)
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .toBlocking()
-                .subscribe(testSubscriber);
-        testSubscriber.assertValueCount(1);
-        testSubscriber.assertCompleted();
-    }
-
-    @Test
     public void testLastLocation() {
-        // Successful run of lastLocation() observable.
-        RxLocation.lastLocation(context)
-                .subscribeOn(Schedulers.newThread())
-                .toBlocking()
+        rxLocation.lastLocation()
                 .subscribe(testSubscriber);
+        testSubscriber.awaitTerminalEvent();
         testSubscriber.assertValueCount(1);
         testSubscriber.assertCompleted();
     }
 
     @Test
-    public void testLocationUpdatesUiThread() {
-        // Successful run of locationUpdates() observable.
-        LocationRequest defaultLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_NO_POWER);
-        RxLocation.locationUpdates(context, defaultLocationRequest)
+    public void testLastLocationUiThread() {
+        rxLocation.lastLocation()
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .first()
-                .toBlocking()
                 .subscribe(testSubscriber);
+        testSubscriber.awaitTerminalEvent();
         testSubscriber.assertValueCount(1);
+        testSubscriber.assertCompleted();
+    }
+
+    @Test
+    public void testLastLocationNewThread() {
+        rxLocation.lastLocation()
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(testSubscriber);
+        testSubscriber.awaitTerminalEvent();
+        testSubscriber.assertValueCount(1);
+        testSubscriber.assertCompleted();
     }
 
     @Test
     public void testLocationUpdates() {
-        // Successful run of locationUpdates() observable.
-        LocationRequest defaultLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_NO_POWER);
-        RxLocation.locationUpdates(context, defaultLocationRequest)
+        rxLocation.locationUpdates(locationRequest)
+                .first()
+                .subscribe(testSubscriber);
+        testSubscriber.awaitTerminalEvent();
+        testSubscriber.assertValueCount(1);
+    }
+
+    @Test
+    public void testLocationUpdatesUiThread() {
+        rxLocation.locationUpdates(locationRequest)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .first()
+                .subscribe(testSubscriber);
+        testSubscriber.awaitTerminalEvent();
+        testSubscriber.assertValueCount(1);
+    }
+
+    @Test
+    public void testLocationUpdatesNewThread() {
+        rxLocation.locationUpdates(locationRequest)
                 .subscribeOn(Schedulers.newThread())
                 .first()
-                .toBlocking()
                 .subscribe(testSubscriber);
+        testSubscriber.awaitTerminalEvent();
         testSubscriber.assertValueCount(1);
     }
 

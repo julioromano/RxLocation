@@ -22,7 +22,13 @@ android {
         }
         debug {
             minifyEnabled true
-            shrinkResources true
+            // setting shrinkResources false causes the following error while running androidTests:
+            //
+            // A problem was found with the configuration of task ':rxlocation:packageDebugAndroidTest'.
+            // > File './RxLocation/rxlocation/build/intermediates/res/resources-debug-androidTest-stripped.ap_'
+            // specified for property 'resourceFile' does not exist.
+            //
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             testCoverageEnabled = true
         }
