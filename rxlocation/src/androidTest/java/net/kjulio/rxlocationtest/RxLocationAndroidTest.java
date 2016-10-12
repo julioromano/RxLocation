@@ -13,7 +13,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import rx.android.schedulers.AndroidSchedulers;
 import rx.observers.TestSubscriber;
+import rx.schedulers.Schedulers;
 
 import static org.junit.Assert.assertEquals;
 
@@ -35,11 +37,38 @@ public class RxLocationAndroidTest {
     }
 
     @Test
-    public void testLastLocation() {
+    public void testLastLocationUiThread() {
         // Successful run of lastLocation() observable.
-        RxLocation.lastLocation(context).toBlocking().subscribe(testSubscriber);
+        RxLocation.lastLocation(context)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .toBlocking()
+                .subscribe(testSubscriber);
         testSubscriber.assertValueCount(1);
         testSubscriber.assertCompleted();
+    }
+
+    @Test
+    public void testLastLocation() {
+        // Successful run of lastLocation() observable.
+        RxLocation.lastLocation(context)
+                .subscribeOn(Schedulers.newThread())
+                .toBlocking()
+                .subscribe(testSubscriber);
+        testSubscriber.assertValueCount(1);
+        testSubscriber.assertCompleted();
+    }
+
+    @Test
+    public void testLocationUpdatesUiThread() {
+        // Successful run of locationUpdates() observable.
+        LocationRequest defaultLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_NO_POWER);
+        RxLocation.locationUpdates(context, defaultLocationRequest)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .first()
+                .toBlocking()
+                .subscribe(testSubscriber);
+        testSubscriber.assertValueCount(1);
     }
 
     @Test
@@ -48,7 +77,10 @@ public class RxLocationAndroidTest {
         LocationRequest defaultLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_NO_POWER);
         RxLocation.locationUpdates(context, defaultLocationRequest)
-                .first().toBlocking().subscribe(testSubscriber);
+                .subscribeOn(Schedulers.newThread())
+                .first()
+                .toBlocking()
+                .subscribe(testSubscriber);
         testSubscriber.assertValueCount(1);
     }
 
