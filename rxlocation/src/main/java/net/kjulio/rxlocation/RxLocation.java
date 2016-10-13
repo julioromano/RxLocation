@@ -17,11 +17,15 @@ import rx.Observable;
  * All public methods of the library have a static and non-static version.
  *
  * The static methods can be invoked straight away:
- * Observable<Location> o = RxLocation.lastLocation(context);
+ * {@code
+ *  Observable<Location> o = RxLocation.lastLocation(context);
+ * }
  *
  * The non-static methods require an RxLocation instance instead:
- * RxLocation rxLocation = new RxLocation(context);
- * Observable<Location> o = rxLocation.lastLocation();
+ * {@code
+ *  RxLocation rxLocation = new RxLocation(context);
+ *  Observable<Location> o = rxLocation.lastLocation();
+ * }
  *
  * The library is stateless: there is no difference in using the static vs non-static version.
  */
