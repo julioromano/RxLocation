@@ -70,8 +70,9 @@ public class RxLocation {
      *
      * @return an Observable that returns Location items.
      */
+    @SuppressWarnings("WeakerAccess") // It's an entry point.
     public static Observable<Location> locationUpdates(Context context,
-                                                          LocationRequest locationRequest) {
+                                                       LocationRequest locationRequest) {
         return LocationUpdatesHelper.observable(context, new GoogleApiClientFactoryImpl(),
                 new FusedLocationProviderFactoryImpl(), locationRequest);
     }
@@ -83,6 +84,7 @@ public class RxLocation {
      *
      * @return an Observable that returns one Location item.
      */
+    @SuppressWarnings("WeakerAccess") // It's an entry point.
     public static Observable<Location> lastLocation(Context context) {
         return LastLocationHelper.observable(context, new GoogleApiClientFactoryImpl(),
                 new FusedLocationProviderFactoryImpl());
