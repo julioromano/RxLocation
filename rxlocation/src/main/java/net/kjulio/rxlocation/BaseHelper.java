@@ -32,13 +32,7 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
 
     BaseHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
                Subscriber<? super Location> subscriber) {
-
-        Looper looper = Looper.myLooper();
-        if (looper == null) {
-            looper = Looper.getMainLooper();
-        }
-        handler = new Handler(looper);
-
+        handler = new Handler(getLooper());
         this.context = context;
         googleApiClient = googleApiClientFactory.create(context, handler, this, this);
         this.subscriber = subscriber;
@@ -129,5 +123,21 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
             // https://developers.google.com/android/guides/api-client
             subscriber.onError(new GapiConnectionFailedException(connectionResult));
         }
+    }
+
+    /**
+     * Helper that always return a valid Looper.
+     *
+     * Returns either the current thread's looper or, if the current thread is not a looper thread,
+     * the main looper.
+     *
+     * @return An Android Looper.
+     */
+    Looper getLooper() {
+        Looper looper = Looper.myLooper();
+        if (looper == null) {
+            looper = Looper.getMainLooper();
+        }
+        return looper;
     }
 }

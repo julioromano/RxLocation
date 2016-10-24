@@ -30,7 +30,7 @@ class LocationUpdatesHelper extends BaseHelper implements LocationListener {
     void onLocationPermissionsGranted() {
         try {
             fusedLocationProviderApi.requestLocationUpdates(
-                    googleApiClient, locationRequest, this);
+                    googleApiClient, locationRequest, this, getLooper());
         } catch (SecurityException e) {
             subscriber.onError(e);
         }
