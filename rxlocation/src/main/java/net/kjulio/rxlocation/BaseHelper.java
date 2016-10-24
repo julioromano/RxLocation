@@ -62,17 +62,19 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
     }
 
     private void close() {
-        // Calling Google APIs when the initial connection to GoogleApiClient failed
-        // will lead to a crash so we must check for this case.
-        if (googleApiClient.isConnected()) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                // Calling Google APIs when the initial connection to GoogleApiClient failed
+                // will lead to a crash so we must check for this case.
+                // .disconnect() is always safe to call but onGooglePlayServicesDisconnecting()
+                // should be invoked only if googleApiClient is not disconnected or not connecting.
+                if (googleApiClient.isConnected()) {
                     onGooglePlayServicesDisconnecting();
-                    googleApiClient.disconnect();
                 }
-            });
-        }
+                googleApiClient.disconnect();
+            }
+        });
         // Shut down the deticated handler thread if it's been created.
         if (handlerThread != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
