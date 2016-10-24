@@ -6,6 +6,9 @@ import android.location.Location;
 import com.google.android.gms.location.LocationRequest;
 
 import rx.Observable;
+import rx.Subscriber;
+import rx.functions.Action0;
+import rx.subscriptions.Subscriptions;
 
 /**
  * RxLocation.
@@ -75,10 +78,33 @@ public class RxLocation {
      * @return an Observable that returns Location items.
      */
     @SuppressWarnings("WeakerAccess") // It's an entry point.
-    public static Observable<Location> locationUpdates(Context context,
-                                                       LocationRequest locationRequest) {
-        return LocationUpdatesHelper.observable(context, new GoogleApiClientFactoryImpl(),
-                new FusedLocationProviderFactoryImpl(), locationRequest);
+    public static Observable<Location> locationUpdates(final Context context,
+                                                       final LocationRequest locationRequest) {
+        return Observable.create(new Observable.OnSubscribe<Location>() {
+            @Override
+            public void call(Subscriber<? super Location> subscriber) {
+                try {
+                    if (!subscriber.isUnsubscribed()) {
+
+                        final LocationUpdatesHelper locationUpdatesHelper = new LocationUpdatesHelper(
+                                context, new GoogleApiClientFactoryImpl(),
+                                new FusedLocationProviderFactoryImpl(), subscriber, locationRequest);
+
+                        subscriber.add(Subscriptions.create(new Action0() {
+                            @Override
+                            public void call() {
+                                locationUpdatesHelper.stop();
+                            }
+                        }));
+
+                        locationUpdatesHelper.start();
+
+                    }
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        });
     }
 
     /**
@@ -89,9 +115,31 @@ public class RxLocation {
      * @return an Observable that returns one Location item.
      */
     @SuppressWarnings("WeakerAccess") // It's an entry point.
-    public static Observable<Location> lastLocation(Context context) {
-        return LastLocationHelper.observable(context, new GoogleApiClientFactoryImpl(),
-                new FusedLocationProviderFactoryImpl());
-    }
+    public static Observable<Location> lastLocation(final Context context) {
+        return Observable.create(new Observable.OnSubscribe<Location>() {
+            @Override
+            public void call(Subscriber<? super Location> subscriber) {
+                try {
+                    if (!subscriber.isUnsubscribed()) {
 
+                        final LastLocationHelper lastLocationHelper = new LastLocationHelper(
+                                context, new GoogleApiClientFactoryImpl(),
+                                new FusedLocationProviderFactoryImpl(), subscriber);
+
+                        subscriber.add(Subscriptions.create(new Action0() {
+                            @Override
+                            public void call() {
+                                lastLocationHelper.stop();
+                            }
+                        }));
+
+                        lastLocationHelper.start();
+
+                    }
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        });
+    }
 }

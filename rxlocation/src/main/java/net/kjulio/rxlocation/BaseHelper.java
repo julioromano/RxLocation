@@ -12,11 +12,15 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import rx.Subscriber;
-import rx.functions.Action0;
-import rx.subscriptions.Subscriptions;
 
 /**
  * Base class for all helpers, manages the GoogleApiClient connection.
+ *
+ * Contract:
+ *  - Instantiate object.
+ *  - Call start() once to begin.
+ *  - Call stop() once when finished.
+ *  - Subclasses should release any resources in onGooglePlayServicesDisconnecting().
  */
 abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
@@ -36,14 +40,11 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         handler = new Handler(looper);
 
         this.context = context;
+        googleApiClient = googleApiClientFactory.create(context, handler, this, this);
         this.subscriber = subscriber;
-        this.googleApiClient = googleApiClientFactory.create(context, handler, this, this);
-        subscriber.add(Subscriptions.create(new Action0() {
-            @Override
-            public void call() {
-                close();
-            }
-        }));
+    }
+
+    void start() {
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -52,7 +53,7 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         });
     }
 
-    private void close() {
+    void stop() {
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -86,7 +87,7 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         // TODO: Is it safe to call again connect() inside onConnectionFailed() ?
         // Maybe we should use a counter variable to avoid recalling googleApiClient.connect()
         // twice and instead execute subscriber.onError();
-        googleApiClient.connect();
+        start();
     }
 
     @Override

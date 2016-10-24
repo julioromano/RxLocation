@@ -5,38 +5,21 @@ import android.location.Location;
 
 import com.google.android.gms.location.FusedLocationProviderApi;
 
-import rx.Observable;
 import rx.Subscriber;
 
 class LastLocationHelper extends BaseHelper {
 
     private final FusedLocationProviderApi fusedLocationProviderApi;
 
-    private LastLocationHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
+    LastLocationHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
                                FusedLocationProviderFactory fusedLocationProviderFactory,
                                Subscriber<? super Location> subscriber) {
         super(context, googleApiClientFactory, subscriber);
         this.fusedLocationProviderApi = fusedLocationProviderFactory.create();
     }
 
-    static Observable<Location> observable(final Context context, final GoogleApiClientFactory googleApiClientFactory,
-                                           final FusedLocationProviderFactory fusedLocationProviderFactory) {
-        return Observable.create(new Observable.OnSubscribe<Location>() {
-            @Override
-            public void call(Subscriber<? super Location> subscriber) {
-                try {
-                    if (!subscriber.isUnsubscribed()) {
-                        new LastLocationHelper(context, googleApiClientFactory,
-                                fusedLocationProviderFactory, subscriber);
-                    }
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
-            }
-        });
-    }
-
-    private void getLastLocation() {
+    @Override
+    void onLocationPermissionsGranted() {
         Location location;
         try {
             location = fusedLocationProviderApi.getLastLocation(googleApiClient);
@@ -50,11 +33,6 @@ class LastLocationHelper extends BaseHelper {
         } else {
             subscriber.onError(new RuntimeException("Last location is null."));
         }
-    }
-
-    @Override
-    void onLocationPermissionsGranted() {
-        getLastLocation();
     }
 
     @Override
