@@ -17,7 +17,7 @@ Add this to your module's gradle.conf:
 
 ```groovy
 dependencies {
-    compile 'net.kjulio.RxLocation:rxlocation:0.8.0-beta'
+    compile 'net.kjulio.RxLocation:rxlocation:0.9.0-beta'
 }
 ```
 
@@ -49,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void onButtonClick() {
         RxLocation.locationUpdates(this, defaultLocationRequest)
-                        .observeOn(AndroidSchedulers.mainThread())
                         .first()
                         .subscribe(new Action1<Location>() {
                             @Override
