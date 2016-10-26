@@ -9,17 +9,19 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 /**
  * Hidden (no visible UI) activity to handle the Android M permission request dialog.
  */
 public class PermissionsActivity extends AppCompatActivity {
 
-    private final static int LOC_REQ_CODE = 4382;
-    private final static String[] LOCATION_PERMISSIONS =
+    private static final int LOC_REQ_CODE = 4382;
+    private static final String[] LOCATION_PERMISSIONS =
             {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
 
-    static boolean permissionsRequestInprogress = false;
+    private static final AtomicBoolean permissionsRequestInprogress = new AtomicBoolean();
 
     static boolean checkPermissions(Context context) {
         int coarseLocPerm = ActivityCompat.checkSelfPermission(
@@ -36,11 +38,11 @@ public class PermissionsActivity extends AppCompatActivity {
      */
     static void requestPermissions(Context context, BaseHelper baseHelper) {
 
-        // Register the calling BaseHelper with the global lock to be notify
+        // Register the calling BaseHelper with the global lock to notify
         // it when PermissionsRequestActivity has finished.
         PermissionsRequestLock.getInstance().addListener(baseHelper);
 
-        if (!permissionsRequestInprogress) {
+        if (!permissionsRequestInprogress.get()) {
             Intent intent = new Intent(context, PermissionsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
@@ -50,23 +52,20 @@ public class PermissionsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // This if handles the case in which the user rotated the device while already showing
-        // this activity leading to it be recreated.
-        if (!permissionsRequestInprogress) {
-            permissionsRequestInprogress = true;
+        // Activity recreation due to configChanges has been disabled in the manifest, no need
+        // to handle it here.
+
+        // Handles the case in which 2 concurrent invocation of requestPermissions() launched
+        // this activity.
+        if (!permissionsRequestInprogress.getAndSet(true)) {
             if (checkPermissions(this)) {
-                notifyObservers();
-                finish();
+                notifyListenersAndDie();
             } else {
                 ActivityCompat.requestPermissions(this, LOCATION_PERMISSIONS, LOC_REQ_CODE);
             }
+        } else {
+            finish();
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        permissionsRequestInprogress = false;
     }
 
     @Override
@@ -74,12 +73,13 @@ public class PermissionsActivity extends AppCompatActivity {
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOC_REQ_CODE) {
-            notifyObservers();
-            finish();
+            notifyListenersAndDie();
         }
     }
 
-    private void notifyObservers() {
+    private void notifyListenersAndDie() {
         PermissionsRequestLock.getInstance().notifyListeners();
+        permissionsRequestInprogress.set(false);
+        finish();
     }
 }

@@ -8,6 +8,8 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.google.android.gms.common.ConnectionResult;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Hidden (no visible UI) activity to handle GoogleApiClient connection error resolution.
  */
@@ -17,7 +19,7 @@ public class ErrorResolutionActivity extends AppCompatActivity {
     // Request code to use when launching the resolution activity
     private static final int REQUEST_RESOLVE_ERROR = 3013;
 
-    static boolean errorResolutionInProgress = false;
+    private static final AtomicBoolean errorResolutionInProgress = new AtomicBoolean();
 
     /**
      * ALWAYS START THIS ACTIVITY USING THIS HELPER METHOD.
@@ -28,11 +30,11 @@ public class ErrorResolutionActivity extends AppCompatActivity {
     static void resolveError(Context context, BaseHelper baseHelper,
                              ConnectionResult connectionResult) {
 
-        // Register the calling BaseHelper with the global lock to be notify
+        // Register the calling BaseHelper with the global lock to notify
         // it when ErrorResolutionActivity has finished.
         ErrorResolutionLock.getInstance().addListener(baseHelper);
 
-        if (!errorResolutionInProgress) {
+        if (!errorResolutionInProgress.get()) {
             Intent intent = new Intent(context, ErrorResolutionActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra(EXTRA_CONNECTION_RESULT, connectionResult);
@@ -43,17 +45,20 @@ public class ErrorResolutionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // This if handles the case in which the user rotated the device while already showing
-        // this activity leading to it be recreated.
-        if (!errorResolutionInProgress) {
-            errorResolutionInProgress = true;
+        // Activity recreation due to configChanges has been disabled in the manifest, no need
+        // to handle it here.
+
+        // Handles the case in which 2 concurrent invocation of requestPermissions() launched
+        // this activity.
+        if (!errorResolutionInProgress.getAndSet(true)) {
             ConnectionResult connectionResult = getIntent().getParcelableExtra(EXTRA_CONNECTION_RESULT);
             try {
                 connectionResult.startResolutionForResult(this, REQUEST_RESOLVE_ERROR);
             } catch (IntentSender.SendIntentException e) {
-                notifyObservers();
-                finish();
+                notifyListenersAndDie();
             }
+        } else {
+            finish();
         }
     }
 
@@ -61,18 +66,13 @@ public class ErrorResolutionActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_RESOLVE_ERROR) {
-            notifyObservers();
-            finish();
+            notifyListenersAndDie();
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        errorResolutionInProgress = false;
-    }
-
-    private void notifyObservers() {
+    private void notifyListenersAndDie() {
         ErrorResolutionLock.getInstance().notifyListeners();
+        errorResolutionInProgress.set(false);
+        finish();
     }
 }
