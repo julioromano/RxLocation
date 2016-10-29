@@ -10,6 +10,6 @@ android:
     - extra-android-m2repository # required when using android support library
     - extra-google-m2repository # required when using play services
 script:
-  - ./gradlew build
+  - ./gradlew build jacocoTestReport
 after_success:
   - bash <(curl -s https://codecov.io/bash)
