@@ -2,7 +2,7 @@
 
 An Android library to get location updates with a nice and clean [RxJava](https://github.com/ReactiveX/RxJava) API.
 
-RxLocation let's you enjoy location updates while relieving the hassles of handling Android M runtime permissions and Google Play Services connection management.
+RxLocation lets you enjoy location updates while relieving the hassles of handling Android M runtime permissions and Google Play Services connection management.
 
 ## Features
  - Transparent management of GoogleApiClient: Connection to GoogleApiClient is automatically opened and closed when needed.
