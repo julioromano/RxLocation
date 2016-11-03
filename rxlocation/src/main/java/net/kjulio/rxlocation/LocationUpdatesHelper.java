@@ -7,7 +7,7 @@ import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 
-import rx.Subscriber;
+import io.reactivex.ObservableEmitter;
 
 /**
  * Manages a location request and its callbacks sending signals to a rx Subscriber.
@@ -18,10 +18,9 @@ class LocationUpdatesHelper extends BaseHelper implements LocationListener {
     private final LocationRequest locationRequest;
 
     LocationUpdatesHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
-                                  FusedLocationProviderFactory fusedLocationProviderFactory,
-                                  Subscriber<? super Location> subscriber,
-                                  LocationRequest locationRequest) {
-        super(context, googleApiClientFactory, subscriber);
+                          FusedLocationProviderFactory fusedLocationProviderFactory,
+                          ObservableEmitter<Location> emitter, LocationRequest locationRequest) {
+        super(context, googleApiClientFactory, emitter);
         this.fusedLocationProviderApi = fusedLocationProviderFactory.create();
         this.locationRequest = locationRequest;
     }
@@ -32,7 +31,7 @@ class LocationUpdatesHelper extends BaseHelper implements LocationListener {
             fusedLocationProviderApi.requestLocationUpdates(
                     googleApiClient, locationRequest, this, handler.getLooper());
         } catch (SecurityException e) {
-            subscriber.onError(e);
+            emitter.onError(e);
         }
     }
 
@@ -43,6 +42,6 @@ class LocationUpdatesHelper extends BaseHelper implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        subscriber.onNext(location);
+        emitter.onNext(location);
     }
 }

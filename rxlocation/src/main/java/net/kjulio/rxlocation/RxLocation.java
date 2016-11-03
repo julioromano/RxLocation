@@ -5,10 +5,11 @@ import android.location.Location;
 
 import com.google.android.gms.location.LocationRequest;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action0;
-import rx.subscriptions.Subscriptions;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Single;
+import io.reactivex.functions.Cancellable;
 
 /**
  * RxLocation.
@@ -62,7 +63,7 @@ public class RxLocation {
      *
      * @return an Observable that returns one Location item.
      */
-    public Observable<Location> lastLocation() {
+    public Single<Location> lastLocation() {
         return RxLocation.lastLocation(context);
     }
 
@@ -79,30 +80,23 @@ public class RxLocation {
      */
     @SuppressWarnings("WeakerAccess") // It's an entry point.
     public static Observable<Location> locationUpdates(final Context context,
-                                                       final LocationRequest locationRequest) {
-        return Observable.create(new Observable.OnSubscribe<Location>() {
+                                                   final LocationRequest locationRequest) {
+        return Observable.create(new ObservableOnSubscribe<Location>() {
             @Override
-            public void call(Subscriber<? super Location> subscriber) {
-                try {
-                    if (!subscriber.isUnsubscribed()) {
+            public void subscribe(ObservableEmitter<Location> e) throws Exception {
 
-                        final LocationUpdatesHelper locationUpdatesHelper = new LocationUpdatesHelper(
-                                context, new GoogleApiClientFactoryImpl(),
-                                new FusedLocationProviderFactoryImpl(), subscriber, locationRequest);
+                final LocationUpdatesHelper locationUpdatesHelper = new LocationUpdatesHelper(
+                        context, new GoogleApiClientFactoryImpl(),
+                        new FusedLocationProviderFactoryImpl(), e, locationRequest);
 
-                        subscriber.add(Subscriptions.create(new Action0() {
-                            @Override
-                            public void call() {
-                                locationUpdatesHelper.stop();
-                            }
-                        }));
-
-                        locationUpdatesHelper.start();
-
+                e.setCancellable(new Cancellable() {
+                    @Override
+                    public void cancel() throws Exception {
+                        locationUpdatesHelper.stop();
                     }
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
+                });
+
+                locationUpdatesHelper.start();
             }
         });
     }
@@ -115,31 +109,24 @@ public class RxLocation {
      * @return an Observable that returns one Location item.
      */
     @SuppressWarnings("WeakerAccess") // It's an entry point.
-    public static Observable<Location> lastLocation(final Context context) {
-        return Observable.create(new Observable.OnSubscribe<Location>() {
+    public static Single<Location> lastLocation(final Context context) {
+        return Observable.create(new ObservableOnSubscribe<Location>() {
             @Override
-            public void call(Subscriber<? super Location> subscriber) {
-                try {
-                    if (!subscriber.isUnsubscribed()) {
+            public void subscribe(ObservableEmitter<Location> e) throws Exception {
 
-                        final LastLocationHelper lastLocationHelper = new LastLocationHelper(
-                                context, new GoogleApiClientFactoryImpl(),
-                                new FusedLocationProviderFactoryImpl(), subscriber);
+                final LastLocationHelper lastLocationHelper = new LastLocationHelper(
+                        context, new GoogleApiClientFactoryImpl(),
+                        new FusedLocationProviderFactoryImpl(), e);
 
-                        subscriber.add(Subscriptions.create(new Action0() {
-                            @Override
-                            public void call() {
-                                lastLocationHelper.stop();
-                            }
-                        }));
-
-                        lastLocationHelper.start();
-
+                e.setCancellable(new Cancellable() {
+                    @Override
+                    public void cancel() throws Exception {
+                        lastLocationHelper.stop();
                     }
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
+                });
+
+                lastLocationHelper.start();
             }
-        });
+        }).singleOrError();
     }
 }

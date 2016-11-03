@@ -8,34 +8,32 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowApplication;
 
-import rx.Subscriber;
-import rx.observers.TestSubscriber;
+import io.reactivex.ObservableEmitter;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class BaseHelperTest {
 
-    private Context context;
-    private MockGoogleApiClientFactoryImpl factory;
-    private TestSubscriber<Location> testSubscriber;
+    @Mock private ObservableEmitter<Location> emitter;
     private ShadowApplication application;
 
     private MyBaseHelper baseHelper;
 
     @Before
     public void setUp() throws Exception {
-        context = RuntimeEnvironment.application.getApplicationContext();
-        factory = new MockGoogleApiClientFactoryImpl();
-        testSubscriber = TestSubscriber.create();
+        Context context = RuntimeEnvironment.application.getApplicationContext();
+        MockGoogleApiClientFactoryImpl factory = new MockGoogleApiClientFactoryImpl();
         application = Shadows.shadowOf(RuntimeEnvironment.application);
-
-        baseHelper = new MyBaseHelper(context, factory, testSubscriber);
+        MockitoAnnotations.initMocks(this);
+        baseHelper = new MyBaseHelper(context, factory, emitter);
     }
 
     @Test
@@ -125,8 +123,8 @@ public class BaseHelperTest {
         final int[] onGooglePlayServicesDisconnectingCount = {0};
 
         MyBaseHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
-                     Subscriber<? super Location> subscriber) {
-            super(context, googleApiClientFactory, subscriber);
+                     ObservableEmitter<Location> emitter) {
+            super(context, googleApiClientFactory, emitter);
         }
 
         @Override

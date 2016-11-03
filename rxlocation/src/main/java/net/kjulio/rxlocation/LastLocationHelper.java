@@ -5,16 +5,16 @@ import android.location.Location;
 
 import com.google.android.gms.location.FusedLocationProviderApi;
 
-import rx.Subscriber;
+import io.reactivex.ObservableEmitter;
 
 class LastLocationHelper extends BaseHelper {
 
     private final FusedLocationProviderApi fusedLocationProviderApi;
 
     LastLocationHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
-                               FusedLocationProviderFactory fusedLocationProviderFactory,
-                               Subscriber<? super Location> subscriber) {
-        super(context, googleApiClientFactory, subscriber);
+                       FusedLocationProviderFactory fusedLocationProviderFactory,
+                       ObservableEmitter<Location> emitter) {
+        super(context, googleApiClientFactory, emitter);
         this.fusedLocationProviderApi = fusedLocationProviderFactory.create();
     }
 
@@ -24,14 +24,14 @@ class LastLocationHelper extends BaseHelper {
         try {
             location = fusedLocationProviderApi.getLastLocation(googleApiClient);
         } catch (SecurityException e) {
-            subscriber.onError(e);
+            emitter.onError(e);
             return;
         }
         if (location != null) {
-            subscriber.onNext(location);
-            subscriber.onCompleted();
+            emitter.onNext(location);
+            emitter.onComplete();
         } else {
-            subscriber.onError(new RuntimeException("Last location is null."));
+            emitter.onError(new RuntimeException("Last location is null."));
         }
     }
 

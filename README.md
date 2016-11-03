@@ -7,7 +7,7 @@ RxLocation lets you enjoy location updates while relieving the hassles of handli
 ## Features
  - Transparent management of GoogleApiClient: Connection to GoogleApiClient is automatically opened and closed when needed.
  - Location permission request (Android M+): Shall the app not have been granted location permission, the permission request dialog will pop-up automatically.
- - RxJava API: Get location updates using rx.Observable and compose it with all Rx's operators.
+ - RxJava2 API: Get location updates using io.reactivex.Observable and compose it with all Rx's operators.
  - Convenient error handling: In case the user doesn't grant location permission an error condition will be issued via rxJava's onError() API.
  - Google Play Services connection failure handling: When encountering recoverable GoogleApiClient connection failures, UI with the proper resolution steps will automatically pop up. 
 
@@ -17,7 +17,7 @@ Add this to your module's gradle.conf:
 
 ```groovy
 dependencies {
-    compile 'net.kjulio.RxLocation:rxlocation:0.10.0-beta'
+    compile 'net.kjulio.RxLocation:rxlocation:0.11.0-beta'
 }
 ```
 
@@ -49,15 +49,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void onButtonClick() {
         RxLocation.locationUpdates(this, defaultLocationRequest)
-                        .first()
-                        .subscribe(new Action1<Location>() {
+                        .firstElement()
+                        .subscribe(new Consumer<Location>() {
                             @Override
-                            public void call(Location location) {
+                            public void accept(Location location) throws Exception {
                                 textView.setText(location.toString());
                             }
-                        }, new Action1<Throwable>() {
+                        }, new Consumer<Throwable>() {
                             @Override
-                            public void call(Throwable throwable) {
+                            public void accept(Throwable throwable) throws Exception {
                                 textView.setText(throwable.getLocalizedMessage());
                             }
                         });

@@ -13,9 +13,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.observers.TestSubscriber;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.observers.TestObserver;
+import io.reactivex.schedulers.Schedulers;
 
 import static org.junit.Assert.assertEquals;
 
@@ -23,14 +23,14 @@ import static org.junit.Assert.assertEquals;
 public class RxLocationAndroidTest {
 
     private Context context; // Context of the app under test.
-    private TestSubscriber<Location> testSubscriber;
+    private TestObserver<Location> testObserver;
     private LocationRequest locationRequest;
     private RxLocation rxLocation;
 
     @Before
     public void setUp() {
         context = InstrumentationRegistry.getTargetContext();
-        testSubscriber = TestSubscriber.create();
+        testObserver = TestObserver.create();
         locationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         rxLocation = new RxLocation(context);
@@ -44,59 +44,59 @@ public class RxLocationAndroidTest {
     @Test
     public void testLastLocation() {
         rxLocation.lastLocation()
-                .subscribe(testSubscriber);
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValueCount(1);
-        testSubscriber.assertCompleted();
+                .subscribe(testObserver);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValueCount(1);
+        testObserver.assertComplete();
     }
 
     @Test
     public void testLastLocationUiThread() {
         rxLocation.lastLocation()
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(testSubscriber);
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValueCount(1);
-        testSubscriber.assertCompleted();
+                .subscribe(testObserver);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValueCount(1);
+        testObserver.assertComplete();
     }
 
     @Test
     public void testLastLocationNewThread() {
         rxLocation.lastLocation()
                 .subscribeOn(Schedulers.newThread())
-                .subscribe(testSubscriber);
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValueCount(1);
-        testSubscriber.assertCompleted();
+                .subscribe(testObserver);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValueCount(1);
+        testObserver.assertComplete();
     }
 
     @Test
     public void testLocationUpdates() {
         rxLocation.locationUpdates(locationRequest)
-                .first()
-                .subscribe(testSubscriber);
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValueCount(1);
+                .firstElement()
+                .subscribe(testObserver);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValueCount(1);
     }
 
     @Test
     public void testLocationUpdatesUiThread() {
         rxLocation.locationUpdates(locationRequest)
                 .subscribeOn(AndroidSchedulers.mainThread())
-                .first()
-                .subscribe(testSubscriber);
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValueCount(1);
+                .firstElement()
+                .subscribe(testObserver);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValueCount(1);
     }
 
     @Test
     public void testLocationUpdatesNewThread() {
         rxLocation.locationUpdates(locationRequest)
                 .subscribeOn(Schedulers.newThread())
-                .first()
-                .subscribe(testSubscriber);
-        testSubscriber.awaitTerminalEvent();
-        testSubscriber.assertValueCount(1);
+                .firstElement()
+                .subscribe(testObserver);
+        testObserver.awaitTerminalEvent();
+        testObserver.assertValueCount(1);
     }
 
 }

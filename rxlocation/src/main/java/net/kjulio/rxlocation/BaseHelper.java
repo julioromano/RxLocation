@@ -11,7 +11,7 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 
-import rx.Subscriber;
+import io.reactivex.ObservableEmitter;
 
 /**
  * Base class for all helpers, manages the GoogleApiClient connection.
@@ -27,11 +27,11 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
 
     private final Context context;
     final Handler handler;
-    final Subscriber<? super Location> subscriber;
+    final ObservableEmitter<Location> emitter;
     final GoogleApiClient googleApiClient;
 
     BaseHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
-               Subscriber<? super Location> subscriber) {
+               ObservableEmitter<Location> emitter) {
 
         // Returns either the current thread's looper or, if the current thread is not a looper
         // thread, the main looper.Returns either the current thread's looper or, if the current
@@ -44,7 +44,7 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         this.context = context;
         handler = new Handler(looper);
         googleApiClient = googleApiClientFactory.create(context, handler, this, this);
-        this.subscriber = subscriber;
+        this.emitter = emitter;
     }
 
     void start() {
@@ -81,7 +81,7 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         if (PermissionsActivity.checkPermissions(context)) {
             onLocationPermissionsGranted();
         } else {
-            subscriber.onError(new SecurityException("Location permission not granted."));
+            emitter.onError(new SecurityException("Location permission not granted."));
         }
     }
 
@@ -89,7 +89,7 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         // when globalLock is released by ErrorResolutionActivity recheck permissions and go on.
         // TODO: Is it safe to call again connect() inside onConnectionFailed() ?
         // Maybe we should use a counter variable to avoid recalling googleApiClient.connect()
-        // twice and instead execute subscriber.onError();
+        // twice and instead execute emitter.onError();
         start();
     }
 
@@ -130,7 +130,7 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         }  else {
             // TODO: Show the default UI when there is no resolution.
             // https://developers.google.com/android/guides/api-client
-            subscriber.onError(new GapiConnectionFailedException(connectionResult));
+            emitter.onError(new GapiConnectionFailedException(connectionResult));
         }
     }
 }
