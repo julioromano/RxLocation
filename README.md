@@ -13,7 +13,7 @@ RxLocation lets you enjoy location updates while relieving the hassles of handli
 
 ## Installation
 
-Add this to your module's gradle.conf:
+Add this to your module's build.gradle:
 
 ```groovy
 dependencies {
