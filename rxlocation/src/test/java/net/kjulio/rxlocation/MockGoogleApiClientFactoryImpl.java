@@ -5,6 +5,8 @@ import android.os.Handler;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import net.kjulio.rxlocation.internal.GoogleApiClientFactory;
+
 
 class MockGoogleApiClientFactoryImpl implements GoogleApiClientFactory {
 

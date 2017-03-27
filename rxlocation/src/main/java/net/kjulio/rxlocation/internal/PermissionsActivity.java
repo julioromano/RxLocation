@@ -1,4 +1,4 @@
-package net.kjulio.rxlocation;
+package net.kjulio.rxlocation.internal;
 
 import android.Manifest;
 import android.content.Context;

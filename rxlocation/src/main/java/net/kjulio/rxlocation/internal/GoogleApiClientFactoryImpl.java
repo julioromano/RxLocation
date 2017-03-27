@@ -1,4 +1,4 @@
-package net.kjulio.rxlocation;
+package net.kjulio.rxlocation.internal;
 
 import android.content.Context;
 import android.os.Handler;
@@ -7,7 +7,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
 
-class GoogleApiClientFactoryImpl implements GoogleApiClientFactory {
+public class GoogleApiClientFactoryImpl implements GoogleApiClientFactory {
 
     @Override
     public GoogleApiClient create(Context context, Handler handler,

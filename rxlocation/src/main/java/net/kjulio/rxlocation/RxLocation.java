@@ -5,6 +5,11 @@ import android.location.Location;
 
 import com.google.android.gms.location.LocationRequest;
 
+import net.kjulio.rxlocation.internal.FusedLocationProviderFactoryImpl;
+import net.kjulio.rxlocation.internal.GoogleApiClientFactoryImpl;
+import net.kjulio.rxlocation.internal.LastLocationHelper;
+import net.kjulio.rxlocation.internal.LocationUpdatesHelper;
+
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;

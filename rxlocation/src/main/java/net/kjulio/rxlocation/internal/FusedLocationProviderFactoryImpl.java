@@ -1,10 +1,10 @@
-package net.kjulio.rxlocation;
+package net.kjulio.rxlocation.internal;
 
 import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.LocationServices;
 
 
-class FusedLocationProviderFactoryImpl implements FusedLocationProviderFactory {
+public class FusedLocationProviderFactoryImpl implements FusedLocationProviderFactory {
 
     @Override
     public FusedLocationProviderApi create() {

@@ -4,6 +4,9 @@ import android.Manifest;
 import android.content.Context;
 import android.location.Location;
 
+import net.kjulio.rxlocation.internal.BaseHelper;
+import net.kjulio.rxlocation.internal.GoogleApiClientFactory;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

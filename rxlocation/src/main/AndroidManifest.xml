@@ -7,12 +7,12 @@
 
     <application>
         <activity
-            android:name=".PermissionsActivity"
+            android:name=".internal.PermissionsActivity"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:noHistory="true"
             android:theme="@style/InvisibleActivityTheme" />
         <activity
-            android:name=".ErrorResolutionActivity"
+            android:name=".internal.ErrorResolutionActivity"
             android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
             android:noHistory="true"
             android:theme="@style/InvisibleActivityTheme" />

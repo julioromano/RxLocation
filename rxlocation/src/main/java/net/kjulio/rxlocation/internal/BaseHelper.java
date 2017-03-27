@@ -1,4 +1,4 @@
-package net.kjulio.rxlocation;
+package net.kjulio.rxlocation.internal;
 
 import android.content.Context;
 import android.location.Location;
@@ -10,6 +10,8 @@ import android.support.annotation.Nullable;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+
+import net.kjulio.rxlocation.GapiConnectionFailedException;
 
 import io.reactivex.ObservableEmitter;
 
@@ -47,7 +49,7 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         this.emitter = emitter;
     }
 
-    void start() {
+    public void start() {
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -56,7 +58,7 @@ abstract class BaseHelper implements GoogleApiClient.ConnectionCallbacks,
         });
     }
 
-    void stop() {
+    public void stop() {
         handler.post(new Runnable() {
             @Override
             public void run() {

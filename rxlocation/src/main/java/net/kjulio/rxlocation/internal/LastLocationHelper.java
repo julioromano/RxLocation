@@ -1,4 +1,4 @@
-package net.kjulio.rxlocation;
+package net.kjulio.rxlocation.internal;
 
 import android.content.Context;
 import android.location.Location;
@@ -7,11 +7,11 @@ import com.google.android.gms.location.FusedLocationProviderApi;
 
 import io.reactivex.ObservableEmitter;
 
-class LastLocationHelper extends BaseHelper {
+public class LastLocationHelper extends BaseHelper {
 
     private final FusedLocationProviderApi fusedLocationProviderApi;
 
-    LastLocationHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
+    public LastLocationHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
                        FusedLocationProviderFactory fusedLocationProviderFactory,
                        ObservableEmitter<Location> emitter) {
         super(context, googleApiClientFactory, emitter);

@@ -1,4 +1,4 @@
-package net.kjulio.rxlocation;
+package net.kjulio.rxlocation.internal;
 
 import android.content.Context;
 import android.location.Location;
@@ -12,12 +12,12 @@ import io.reactivex.ObservableEmitter;
 /**
  * Manages a location request and its callbacks sending signals to a rx Subscriber.
  */
-class LocationUpdatesHelper extends BaseHelper implements LocationListener {
+public class LocationUpdatesHelper extends BaseHelper implements LocationListener {
 
     private final FusedLocationProviderApi fusedLocationProviderApi;
     private final LocationRequest locationRequest;
 
-    LocationUpdatesHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
+    public LocationUpdatesHelper(Context context, GoogleApiClientFactory googleApiClientFactory,
                           FusedLocationProviderFactory fusedLocationProviderFactory,
                           ObservableEmitter<Location> emitter, LocationRequest locationRequest) {
         super(context, googleApiClientFactory, emitter);

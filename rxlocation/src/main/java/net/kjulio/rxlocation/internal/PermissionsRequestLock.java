@@ -1,4 +1,4 @@
-package net.kjulio.rxlocation;
+package net.kjulio.rxlocation.internal;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
